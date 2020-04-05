@@ -4,6 +4,8 @@ import numpy as np
 from pygame.locals import *
 from itertools import product 
 
+pygame.init()
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -19,6 +21,7 @@ numCols = 7
 lineColor = BLUE
 cellWidth = 50
 cellHeight = 50
+font = pygame.font.Font('freesansbold.ttf', 32)
 
 endX = startX + numCols * cellWidth
 endY = startY + numRows * cellHeight
@@ -76,15 +79,6 @@ def isCheckMate():
         if count == 4:
             return True
 
-        # for horizontal
-        count = 0
-        for i in range(4):
-            if checkValidity(row + i, col):
-                if boardConfig[row][col] == boardConfig[row + i][col]:
-                    count = count + 1
-        if count == 4:
-            return True
-
         # for vertical
         count = 0
         for i in range(4):
@@ -122,20 +116,36 @@ def updateConfig(DISPLAY,  currConfig,  row,  col,  playerID,  diskColor):
         return False
 
     createDisk(DISPLAY,  currConfig[col],  col,  diskColor[playerID])
-    boardConfig[currConfig[col]][col] = playerID;
+    boardConfig[currConfig[col]][col] = playerID
     currConfig[col] = currConfig[col] - 1
     return True
 
-def showCurrPlayer(DISPLAY, playerID, diskColor):
-    x = endX + 70
-    y = endY + 70
-    createDiskXY(DISPLAY, x, y, diskRadius, diskColor[playerID]) 
+
+def displayStatus(DISPLAY, text, playerID, diskColor):
+    x = 260
+    y = endY + 30
+    width = 200
+    height = 40
+
+    statusFont = pygame.font.Font('freesansbold.ttf', 24)
+    text = statusFont.render(text, True, BLACK, GREEN) 
+
+    textRect = text.get_rect()  
+    textRect.x = x + 10
+    textRect.y = y + 10
+   
+    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
+    pygame.draw.rect(DISPLAY, WHITE, (x, y, 200, 50), 0)
+    pygame.display.update()
+    DISPLAY.blit(text, textRect) 
+    
+    diskX = x + width - 30 - diskRadius
+    diskY = textRect.centery
+    createDiskXY(DISPLAY, diskX, diskY, diskRadius, diskColor[playerID]) 
 
 
 def main():
-    pygame.init()
-
-    DISPLAY=pygame.display.set_mode((displayWidth, displayHeight))
+    DISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
     DISPLAY.fill(WHITE)
 
     # building grid
@@ -148,22 +158,20 @@ def main():
 
     currConfig = [numRows - 1]*numCols
     diskColor = [YELLOW,  RED]
-    # if player == 1:
-    #     diskColor = YELLOW
-    # else:
-    #     diskColor = RED
 
     # main loop to capture events
+    d_isCheckMate = False
     playerID = 0
+    displayStatus(DISPLAY, "PLAYER", playerID, diskColor)
+
     while True:
-        showCurrPlayer(DISPLAY, playerID, diskColor)
         for event in pygame.event.get():
             if event.type==QUIT:
                 pygame.quit()
                 sys.exit()
+            if d_isCheckMate:
+                continue
             if event.type == pygame.MOUSEBUTTONUP:
-                if isCheckMate():
-                    continue
                 if event.button == 1:
                     x = event.pos[0];                       y = event.pos[1]
                     colNum = (x - startX) / cellWidth;      rowNum = (y - startY) / cellHeight 
@@ -172,6 +180,11 @@ def main():
                     # createDisk(DISPLAY,  rowNum,  colNum,  diskColor[playerID])
                     if updateConfig(DISPLAY,  currConfig,  rowNum,  colNum,  playerID,  diskColor):
                         playerID = changeTurn(playerID)
+                        displayStatus(DISPLAY, "PLAYER", playerID, diskColor)
+                        if isCheckMate():
+                            d_isCheckMate = True
+                            playerID = changeTurn(playerID)
+                            displayStatus(DISPLAY, "WINNER", playerID, diskColor)
         pygame.display.update()
 
 
