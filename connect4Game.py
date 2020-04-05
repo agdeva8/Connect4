@@ -64,12 +64,50 @@ def isCheckMate():
     for row, col in product(range(numRows), range(numCols)):
         if boardConfig[row][col] == -1:
             continue
-        iterDirec = 0
+
+        # for horizontal
+        count = 0
         for i in range(4):
             if checkValidity(row + i, col):
                 if boardConfig[row][col] == boardConfig[row + i][col]:
-                    iterDirec = iterDirec + 1
-        if iterDirec == 4:
+                    count = count + 1
+        if count == 4:
+            return True
+
+        # for horizontal
+        count = 0
+        for i in range(4):
+            if checkValidity(row + i, col):
+                if boardConfig[row][col] == boardConfig[row + i][col]:
+                    count = count + 1
+        if count == 4:
+            return True
+
+        # for vertical
+        count = 0
+        for i in range(4):
+            if checkValidity(row, col + i):
+                if boardConfig[row][col] == boardConfig[row][col + i]:
+                    count = count + 1
+        if count == 4:
+            return True
+
+        # for reverse diagonal
+        count = 0
+        for i in range(4):
+            if checkValidity(row + i, col + i):
+                if boardConfig[row][col] == boardConfig[row + i][col + i]:
+                    count = count + 1
+        if count == 4:
+            return True
+
+        # for diagonal
+        count = 0
+        for i in range(4):
+            if checkValidity(row + i, col - i):
+                if boardConfig[row][col] == boardConfig[row + i][col - i]:
+                    count = count + 1
+        if count == 4:
             return True
     return False
 
