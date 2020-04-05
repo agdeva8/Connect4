@@ -15,7 +15,6 @@ lineWidth = 2;
 numRows = 6
 numCols = 7
 lineColor = BLUE; 
-
 cellWidth = 50; 
 cellHeight = 50;
 
@@ -25,6 +24,7 @@ endY = startY + numRows * cellHeight;
 xvals = np.arange(startX, endX + cellWidth, cellWidth)
 yvals = np.arange(startY, endY + cellHeight, cellHeight)
 
+boardConf = [ [0]*numCols for _ in range(numRows) ]
 def grid(DISPLAY):
     # drawing vertical lines
     for xVal in xvals:
@@ -51,16 +51,19 @@ def changeTurn(playerID):
     return 0
 
 def checkValidity(row, col):
-    return (row >= 0 and row < numRows and col >= 0 and numCols < numCols);
+    print( str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ") 
+    if (row >= 0 and row < numRows) and (col >= 0 and col < numCols): 
+        return True
+    return False
 
-def updateConfig(DISPLAY, currConfig, row, col, color):
-    if checkValidity(row, col):
+def updateConfig(DISPLAY, currConfig, row, col, playerID, diskColor):
+    if checkValidity(row, col) is False: 
         return False
 
     if currConfig[col] == -1:
         return False
 
-    createDisk(DISPLAY, currConfig[col], col, color)
+    createDisk(DISPLAY, currConfig[col], col, diskColor[playerID])
     currConfig[col] = currConfig[col] - 1
     return True
 
@@ -99,7 +102,7 @@ def main():
                     # if (rowNum < numRows and colNum < numCols): 
                     print("Col Num is {} and row Num is {}".format(rowNum, colNum))
                     # createDisk(DISPLAY, rowNum, colNum, diskColor[playerID])
-                    if updateConfig(DISPLAY, currConfig, rowNum, colNum, diskColor[playerID]):
+                    if updateConfig(DISPLAY, currConfig, rowNum, colNum, playerID, diskColor):
                         playerID = changeTurn(playerID)
         pygame.display.update()
 main()
