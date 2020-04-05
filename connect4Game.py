@@ -28,7 +28,7 @@ yvals = np.arange(startY,  endY + cellHeight,  cellHeight)
 
 boardConfig = [ [-1]*numCols for _ in range(numRows)]
 
-
+diskRadius = int(cellWidth / 2) - 5
 def grid(DISPLAY):
     # drawing vertical lines
     for xVal in xvals:
@@ -42,12 +42,14 @@ def grid(DISPLAY):
     
 def fillGrid(DISPLAY):
     pygame.draw.rect(DISPLAY,  BLUE,  (startX,  startY,  cellWidth * numCols,  cellHeight * numRows),  0)
-    pygame.display.update()
+
+def createDiskXY(DISPLAY, x, y, radius, color):
+    pygame.draw.circle(DISPLAY,  color,  (x,  y),  radius,  0) 
 
 def createDisk(DISPLAY,  row,  col,  color):
     x = int((xvals[col] + xvals[col + 1]) / 2) + 1
     y = int((yvals[row] + yvals[row + 1]) / 2) + 1
-    pygame.draw.circle(DISPLAY,  color,  (x,  y),  int(cellWidth / 2) - 5,  0) 
+    createDiskXY(DISPLAY, x, y, diskRadius, color)
 
 def changeTurn(playerID):
     if playerID == 0:
@@ -124,6 +126,11 @@ def updateConfig(DISPLAY,  currConfig,  row,  col,  playerID,  diskColor):
     currConfig[col] = currConfig[col] - 1
     return True
 
+def showCurrPlayer(DISPLAY, playerID, diskColor):
+    x = endX + 70
+    y = endY + 70
+    createDiskXY(DISPLAY, x, y, diskRadius, diskColor[playerID]) 
+
 
 def main():
     pygame.init()
@@ -149,6 +156,7 @@ def main():
     # main loop to capture events
     playerID = 0
     while True:
+        showCurrPlayer(DISPLAY, playerID, diskColor)
         for event in pygame.event.get():
             if event.type==QUIT:
                 pygame.quit()
