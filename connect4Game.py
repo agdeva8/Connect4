@@ -60,7 +60,7 @@ def changeTurn(playerID):
     return 0
 
 def checkValidity(row,  col):
-    print( str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ") 
+    # print( str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ") 
     if (row >= 0 and row < numRows) and (col >= 0 and col < numCols): 
         return True
     return False
@@ -143,12 +143,23 @@ def displayStatus(DISPLAY, text, playerID, diskColor):
     diskY = textRect.centery
     createDiskXY(DISPLAY, diskX, diskY, diskRadius, diskColor[playerID]) 
 
+def undoButtonPos():
+    x = 50
+    y = endY + 30
+    width = 48
+    height = 48
+    return (x, y, width, height)
 
 def dispUndoButton(DISPLAY):
     undoImg2 = pygame.image.load('icons/undo_48x48.jpg')
+    x, y, width, height = undoButtonPos()
+    DISPLAY.blit(undoImg2, (x, y))
+    pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
 
-    DISPLAY.blit(undoImg2, (50, endY + 30))
-
+def isUndoPressed(pos):
+    undoRec = pygame.Rect(undoButtonPos())
+    if undoRec.collidepoint(pos):
+        return True
 
 def main():
     DISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
@@ -168,21 +179,27 @@ def main():
     # main loop to capture events
     d_isCheckMate = False
     playerID = 0
+
     displayStatus(DISPLAY, "PLAYER", playerID, diskColor)
     dispUndoButton(DISPLAY)
+
     while True:
         for event in pygame.event.get():
             if event.type==QUIT:
                 pygame.quit()
                 sys.exit()
+
             if d_isCheckMate:
                 continue
+
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    isUndoPressed(event.pos)
+
                     x = event.pos[0];                       y = event.pos[1]
                     colNum = (x - startX) / cellWidth;      rowNum = (y - startY) / cellHeight 
                     # if (rowNum < numRows and colNum < numCols): 
-                    print("Col Num is {} and row Num is {}".format(rowNum,  colNum))
+                    # print("Col Num is {} and row Num is {}".format(rowNum,  colNum))
                     # createDisk(DISPLAY,  rowNum,  colNum,  diskColor[playerID])
                     if updateConfig(DISPLAY,  currConfig,  rowNum,  colNum,  playerID,  diskColor):
                         playerID = changeTurn(playerID)
