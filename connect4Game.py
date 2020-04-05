@@ -144,6 +144,12 @@ def displayStatus(DISPLAY, text, playerID, diskColor):
     createDiskXY(DISPLAY, diskX, diskY, diskRadius, diskColor[playerID]) 
 
 
+def dispUndoButton(DISPLAY):
+    undoImg2 = pygame.image.load('icons/undo_48x48.jpg')
+
+    DISPLAY.blit(undoImg2, (50, endY + 30))
+
+
 def main():
     DISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
     DISPLAY.fill(WHITE)
@@ -163,7 +169,7 @@ def main():
     d_isCheckMate = False
     playerID = 0
     displayStatus(DISPLAY, "PLAYER", playerID, diskColor)
-
+    dispUndoButton(DISPLAY)
     while True:
         for event in pygame.event.get():
             if event.type==QUIT:
