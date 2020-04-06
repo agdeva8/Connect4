@@ -82,6 +82,12 @@ def isCheckMate():
             x, y = centerFromRC(row + i*ri, col + i*ci)        
             createDiskXY(x, y, 5, BLACK)
 
+
+    def markLine(row, col, ri, ci):
+        x, y = centerFromRC(row, col)        
+        x2, y2 = centerFromRC(row + 3*ri, col + 3*ci)        
+        pygame.draw.line(DISPLAY, BLACK, (x, y), (x2, y2), 2) 
+
     for row, col in product(range(numRows), range(numCols)):
         if boardConfig[row][col] == -1:
             continue
@@ -94,6 +100,7 @@ def isCheckMate():
                     count = count + 1
         if count == 4:
             markDots(row, col, 1, 0)
+            markLine(row, col, 1, 0)
             return True
 
         # for vertical
@@ -104,6 +111,7 @@ def isCheckMate():
                     count = count + 1
         if count == 4:
             markDots(row, col, 0, 1)
+            markLine(row, col, 0, 1)
             return True
 
         # for reverse diagonal
@@ -114,6 +122,7 @@ def isCheckMate():
                     count = count + 1
         if count == 4:
             markDots(row, col, 1, 1)
+            markLine(row, col, 1, 1)
             return True
 
         # for diagonal
@@ -124,6 +133,7 @@ def isCheckMate():
                     count = count + 1
         if count == 4:
             markDots(row, col, 1, -1)
+            markLine(row, col, 1, -1)
             return True
     return False
 
