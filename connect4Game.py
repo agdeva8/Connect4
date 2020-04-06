@@ -52,8 +52,16 @@ def grid():
 def fillGrid():
     pygame.draw.rect(DISPLAY, BLUE,  (startX,  startY,  cellWidth * numCols,  cellHeight * numRows),  0)
 
+
+def rowColFromXY(pos):
+    x, y = pos
+    col = (x - startX) / cellWidth
+    row = (y - startY) / cellHeight 
+    return (row, col)
+
 def createDiskXY(x, y, radius, color):
     pygame.draw.circle(DISPLAY, color,  (x,  y),  radius,  0) 
+
 
 def centerFromRC(row, col):
     x = int((xvals[col] + xvals[col + 1]) / 2) + 1
@@ -278,6 +286,19 @@ def resetGrid(currConfig):
             boardConfig[j][i] = -1
 
 
+def showColSelected(row, col):
+    x = 30
+    y = startY - 40
+    width = endX - startX + 40
+    height = 30
+    pygame.draw.rect(DISPLAY, WHITE, (x, y, width, height), 0)
+    
+    if checkValidity(row, col) is False:
+        return
+    
+    cx, cy = centerFromRC(row, col) 
+    pygame.draw.polygon(DISPLAY, diskColor[playerID], ((cx - 10, y + 10), (cx + 10, y + 10), (cx, y + 25)))
+
 def winnerCelebration():
     image = pygame.image.load('icons/winner_400x300.jpg')
 
@@ -298,11 +319,14 @@ def main():
 
     lastMove = (-1, -1)
     while True:
+        row, col = rowColFromXY(pygame.mouse.get_pos())
+        if (checkValidity(row, col)):
+            # print("hovered: row {}, col{}".format(row, col))
+            showColSelected(row, col)
         for event in pygame.event.get():
             if event.type==QUIT:
                 pygame.quit()
                 sys.exit()
-
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
@@ -319,8 +343,7 @@ def main():
                         takeUndoAction(currConfig, lastMove)
                         continue
 
-                    x = event.pos[0];                       y = event.pos[1]
-                    colNum = (x - startX) / cellWidth;      rowNum = (y - startY) / cellHeight 
+                    rowNum, colNum = rowColFromXY(event.pos)
 
                     lastMove, success = updateConfig(currConfig,  rowNum,  colNum)
                     if success:
