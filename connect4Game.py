@@ -23,6 +23,9 @@ cellWidth = 50
 cellHeight = 50
 font = pygame.font.Font('freesansbold.ttf', 32)
 
+canUndo = True
+playerID = 0
+
 endX = startX + numCols * cellWidth
 endY = startY + numRows * cellHeight
 
@@ -54,10 +57,12 @@ def createDisk(DISPLAY,  row,  col,  color):
     y = int((yvals[row] + yvals[row + 1]) / 2) + 1
     createDiskXY(DISPLAY, x, y, diskRadius, color)
 
-def changeTurn(playerID):
+def changeTurn():
+    global playerID
     if playerID == 0:
-        return 1
-    return 0
+        playerID = 1
+    else:
+        playerID = 0
 
 def checkValidity(row,  col):
     # print( str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ") 
@@ -108,20 +113,26 @@ def isCheckMate():
     return False
 
 
-def updateConfig(DISPLAY,  currConfig,  row,  col,  playerID,  diskColor):
+def updateConfig(DISPLAY,  currConfig,  row,  col,   diskColor):
+    lastMove = (-1, -1)
+
     if checkValidity(row,  col) is False: 
-        return False
+        return (lastMove, False)
 
     if currConfig[col] == -1:
-        return False
+        return (lastMove, False)
 
-    createDisk(DISPLAY,  currConfig[col],  col,  diskColor[playerID])
+    lastMove = (currConfig[col], col)
+
+    createDisk(DISPLAY,  lastMove[0], lastMove[1],  diskColor[playerID])
+
     boardConfig[currConfig[col]][col] = playerID
     currConfig[col] = currConfig[col] - 1
-    return True
+    
+    return (lastMove, True)
 
 
-def displayStatus(DISPLAY, text, playerID, diskColor):
+def displayStatus(DISPLAY, text, diskColor):
     x = 260
     y = endY + 30
     width = 200
@@ -135,13 +146,14 @@ def displayStatus(DISPLAY, text, playerID, diskColor):
     textRect.y = y + 10
    
     # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
-    pygame.draw.rect(DISPLAY, WHITE, (x, y, 200, 50), 0)
+    pygame.draw.rect(DISPLAY, WHITE, (x, y, width, height), 0)
     pygame.display.update()
     DISPLAY.blit(text, textRect) 
     
     diskX = x + width - 30 - diskRadius
     diskY = textRect.centery
     createDiskXY(DISPLAY, diskX, diskY, diskRadius, diskColor[playerID]) 
+
 
 def undoButtonPos():
     x = 50
@@ -150,18 +162,51 @@ def undoButtonPos():
     height = 48
     return (x, y, width, height)
 
+
 def dispUndoButton(DISPLAY):
     undoImg2 = pygame.image.load('icons/undo_48x48.jpg')
     x, y, width, height = undoButtonPos()
     DISPLAY.blit(undoImg2, (x, y))
-    pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
+    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
+
+def restrictUndoImg(DISPLAY):
+    pygame.draw.rect(DISPLAY, RED, undoButtonPos(), 2)
+    # dispUndoButton(DISPLAY)
+
+def admitUndoImg(DISPLAY):
+    pygame.draw.rect(DISPLAY, WHITE, undoButtonPos(), 2)
+    # dispUndoButton(DISPLAY)
 
 def isUndoPressed(pos):
     undoRec = pygame.Rect(undoButtonPos())
     if undoRec.collidepoint(pos):
         return True
 
+
+def takeUndoAction(DISPLAY, currConfig, lastMove, diskColor):
+    global canUndo
+    if canUndo is False:
+        return 
+
+    row, col = lastMove
+    if checkValidity(row,  col) is False: 
+        return (lastMove, False)
+
+    canUndo = False
+    restrictUndoImg(DISPLAY)
+
+    createDisk(DISPLAY, row, col, WHITE)
+
+    boardConfig[row][col] = -1
+    currConfig[col] = currConfig[col] + 1
+
+    changeTurn()
+    displayStatus(DISPLAY, "PLAYER", diskColor)
+
+
 def main():
+    global canUndo
+
     DISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
     DISPLAY.fill(WHITE)
 
@@ -178,11 +223,11 @@ def main():
 
     # main loop to capture events
     d_isCheckMate = False
-    playerID = 0
 
-    displayStatus(DISPLAY, "PLAYER", playerID, diskColor)
+    displayStatus(DISPLAY, "PLAYER", diskColor)
     dispUndoButton(DISPLAY)
 
+    lastMove = (-1, -1)
     while True:
         for event in pygame.event.get():
             if event.type==QUIT:
@@ -194,20 +239,25 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    isUndoPressed(event.pos)
+                    if (isUndoPressed(event.pos)):
+                        takeUndoAction(DISPLAY, currConfig, lastMove, diskColor)
+                        continue
 
                     x = event.pos[0];                       y = event.pos[1]
                     colNum = (x - startX) / cellWidth;      rowNum = (y - startY) / cellHeight 
-                    # if (rowNum < numRows and colNum < numCols): 
-                    # print("Col Num is {} and row Num is {}".format(rowNum,  colNum))
-                    # createDisk(DISPLAY,  rowNum,  colNum,  diskColor[playerID])
-                    if updateConfig(DISPLAY,  currConfig,  rowNum,  colNum,  playerID,  diskColor):
-                        playerID = changeTurn(playerID)
-                        displayStatus(DISPLAY, "PLAYER", playerID, diskColor)
+
+                    lastMove, success = updateConfig(DISPLAY,  currConfig,  rowNum,  colNum,   diskColor)
+                    if success:
+                        changeTurn()
+                        displayStatus(DISPLAY, "PLAYER", diskColor)
+                        canUndo = True
+                        admitUndoImg(DISPLAY)
+
                         if isCheckMate():
                             d_isCheckMate = True
-                            playerID = changeTurn(playerID)
-                            displayStatus(DISPLAY, "WINNER", playerID, diskColor)
+                            changeTurn()
+                            displayStatus(DISPLAY, "WINNER", diskColor)
+
         pygame.display.update()
 
 
