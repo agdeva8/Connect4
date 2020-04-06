@@ -10,7 +10,10 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255,  255,  0)
+LGREY = (140, 140, 140)
+LLGREY = (153, 153, 153)
 
+bgColor = LLGREY
 displayWidth = 500;     displayHeight = 700
 startX = 50; startY = 50
 lineWidth = 2
@@ -180,7 +183,7 @@ def displayStatus(text):
     textRect.y = y + 10
    
     # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
-    pygame.draw.rect(DISPLAY, WHITE, (x, y, width, height), 0)
+    pygame.draw.rect(DISPLAY, bgColor, (x, y, width, height), 0)
     pygame.display.update()
     DISPLAY.blit(text, textRect) 
     
@@ -208,7 +211,7 @@ def restrictUndoImg():
     # dispUndoButton()
 
 def admitUndoImg():
-    pygame.draw.rect(DISPLAY, WHITE, undoButtonPos(), 2)
+    pygame.draw.rect(DISPLAY, bgColor, undoButtonPos(), 2)
     # dispUndoButton()
 
 def isUndoPressed(pos):
@@ -229,7 +232,7 @@ def takeUndoAction(currConfig, lastMove):
     canUndo = False
     restrictUndoImg()
 
-    createDisk(row, col, WHITE)
+    createDisk(row, col, bgColor)
 
     boardConfig[row][col] = -1
     currConfig[col] = currConfig[col] + 1
@@ -264,7 +267,7 @@ def resetGrid(currConfig):
 
     playerID = 0
 
-    DISPLAY.fill(WHITE)
+    DISPLAY.fill(bgColor)
 
     # building grid
     grid()
@@ -277,7 +280,7 @@ def resetGrid(currConfig):
     # empty coins
     for row in range(0,  numRows):
         for col in range(0,  numCols):
-            createDisk(row,  col,  WHITE)
+            createDisk(row,  col, bgColor)
 
     # clear board and curr config
     for i in range(numCols):
@@ -291,7 +294,7 @@ def showColSelected(row, col):
     y = startY - 40
     width = endX - startX + 40
     height = 30
-    pygame.draw.rect(DISPLAY, WHITE, (x, y, width, height), 0)
+    pygame.draw.rect(DISPLAY, bgColor, (x, y, width, height), 0)
     
     if checkValidity(row, col) is False:
         return
