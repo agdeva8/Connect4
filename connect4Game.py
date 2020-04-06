@@ -54,9 +54,13 @@ def fillGrid():
 def createDiskXY(x, y, radius, color):
     pygame.draw.circle(DISPLAY, color,  (x,  y),  radius,  0) 
 
-def createDisk(row,  col,  color):
+def centerFromRC(row, col):
     x = int((xvals[col] + xvals[col + 1]) / 2) + 1
     y = int((yvals[row] + yvals[row + 1]) / 2) + 1
+    return (x, y)
+
+def createDisk(row,  col,  color):
+    x, y = centerFromRC(row, col)
     createDiskXY(x, y, diskRadius, color)
 
 def changeTurn():
@@ -73,6 +77,11 @@ def checkValidity(row,  col):
     return False
 
 def isCheckMate():
+    def markDots(row, col, ri, ci):
+        for i in range(4):
+            x, y = centerFromRC(row + i*ri, col + i*ci)        
+            createDiskXY(x, y, 5, BLACK)
+
     for row, col in product(range(numRows), range(numCols)):
         if boardConfig[row][col] == -1:
             continue
@@ -84,6 +93,7 @@ def isCheckMate():
                 if boardConfig[row][col] == boardConfig[row + i][col]:
                     count = count + 1
         if count == 4:
+            markDots(row, col, 1, 0)
             return True
 
         # for vertical
@@ -93,6 +103,7 @@ def isCheckMate():
                 if boardConfig[row][col] == boardConfig[row][col + i]:
                     count = count + 1
         if count == 4:
+            markDots(row, col, 0, 1)
             return True
 
         # for reverse diagonal
@@ -102,6 +113,7 @@ def isCheckMate():
                 if boardConfig[row][col] == boardConfig[row + i][col + i]:
                     count = count + 1
         if count == 4:
+            markDots(row, col, 1, 1)
             return True
 
         # for diagonal
@@ -111,6 +123,7 @@ def isCheckMate():
                 if boardConfig[row][col] == boardConfig[row + i][col - i]:
                     count = count + 1
         if count == 4:
+            markDots(row, col, 1, -1)
             return True
     return False
 
