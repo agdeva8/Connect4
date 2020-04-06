@@ -19,6 +19,7 @@ numCols = 7
 lineColor = BLUE
 cellWidth = 50
 cellHeight = 50
+diskColor = [YELLOW,  RED]
 
 canUndo = True
 playerID = 0
@@ -138,7 +139,7 @@ def isCheckMate():
     return False
 
 
-def updateConfig(currConfig,  row,  col,   diskColor):
+def updateConfig(currConfig,  row,  col):
     lastMove = (-1, -1)
 
     if checkValidity(row,  col) is False: 
@@ -157,7 +158,7 @@ def updateConfig(currConfig,  row,  col,   diskColor):
     return (lastMove, True)
 
 
-def displayStatus(text, diskColor):
+def displayStatus(text):
     x = 260
     y = endY + 30
     width = 200
@@ -208,7 +209,7 @@ def isUndoPressed(pos):
         return True
 
 
-def takeUndoAction(currConfig, lastMove, diskColor):
+def takeUndoAction(currConfig, lastMove):
     global canUndo
     if canUndo is False:
         return 
@@ -226,11 +227,34 @@ def takeUndoAction(currConfig, lastMove, diskColor):
     currConfig[col] = currConfig[col] + 1
 
     changeTurn()
-    displayStatus("PLAYER", diskColor)
+    displayStatus("PLAYER")
 
 
-def main():
-    global canUndo
+def resetButtonPos():
+    x = 50
+    y = endY + 90
+    width = 48
+    height = 48
+    return (x, y, width, height)
+
+
+def dispResetButton():
+    resetImg = pygame.image.load('icons/reset_48x48.jpg')
+    x, y, width, height = resetButtonPos()
+    DISPLAY.blit(resetImg, (x, y))
+    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
+
+
+def isResetPressed(pos):
+    resetRec = pygame.Rect(resetButtonPos())
+    if resetRec.collidepoint(pos):
+        return True
+
+def resetGrid(currConfig):
+    global boardConfig
+    global playerID
+
+    playerID = 0
 
     DISPLAY.fill(WHITE)
 
@@ -238,18 +262,29 @@ def main():
     grid()
     fillGrid()
 
+    displayStatus("PLAYER")
+    dispUndoButton()
+    dispResetButton()
+
+    # empty coins
     for row in range(0,  numRows):
         for col in range(0,  numCols):
             createDisk(row,  col,  WHITE)
 
-    currConfig = [numRows - 1]*numCols
-    diskColor = [YELLOW,  RED]
+    # clear board and curr config
+    for i in range(numCols):
+        for j in range(numRows):
+            currConfig[i] = numRows - 1
+            boardConfig[j][i] = -1
 
+def main():
+    global canUndo
+    
+    currConfig = [numRows - 1]*numCols
+
+    resetGrid(currConfig)
     # main loop to capture events
     d_isCheckMate = False
-
-    displayStatus("PLAYER", diskColor)
-    dispUndoButton()
 
     lastMove = (-1, -1)
     while True:
@@ -258,29 +293,36 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-            if d_isCheckMate:
-                continue
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    if (isResetPressed(event.pos)):
+                        resetGrid(currConfig)
+                        d_isCheckMate = False
+                        lastMove = (-1, -1)
+                        continue
+
+                    if d_isCheckMate:
+                        continue
+
                     if (isUndoPressed(event.pos)):
-                        takeUndoAction(currConfig, lastMove, diskColor)
+                        takeUndoAction(currConfig, lastMove)
                         continue
 
                     x = event.pos[0];                       y = event.pos[1]
                     colNum = (x - startX) / cellWidth;      rowNum = (y - startY) / cellHeight 
 
-                    lastMove, success = updateConfig(currConfig,  rowNum,  colNum,   diskColor)
+                    lastMove, success = updateConfig(currConfig,  rowNum,  colNum)
                     if success:
                         changeTurn()
-                        displayStatus("PLAYER", diskColor)
+                        displayStatus("PLAYER")
                         canUndo = True
                         admitUndoImg()
 
                         if isCheckMate():
                             d_isCheckMate = True
                             changeTurn()
-                            displayStatus("WINNER", diskColor)
+                            displayStatus("WINNER")
 
         pygame.display.update()
 
