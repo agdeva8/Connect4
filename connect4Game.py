@@ -30,7 +30,7 @@ playerID = 0
 pygame.init()
 DISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
 
-font = pygame.font.Font('freesansbold.ttf', 32)
+font = pygame.font.Font('fonts/FreeSansBold.ttf', 32)
 
 endX = startX + numCols * cellWidth
 endY = startY + numRows * cellHeight
@@ -175,7 +175,7 @@ def displayStatus(text):
     width = 200
     height = 40
 
-    statusFont = pygame.font.Font('freesansbold.ttf', 24)
+    statusFont = pygame.font.Font('fonts/FreeSansBold.ttf', 24)
     text = statusFont.render(text, True, BLACK, GREEN) 
 
     textRect = text.get_rect()  
