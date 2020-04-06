@@ -182,7 +182,7 @@ def displayStatus(text):
 
 
 def undoButtonPos():
-    x = 50
+    x = 110
     y = endY + 30
     width = 48
     height = 48
@@ -232,7 +232,7 @@ def takeUndoAction(currConfig, lastMove):
 
 def resetButtonPos():
     x = 50
-    y = endY + 90
+    y = endY + 30
     width = 48
     height = 48
     return (x, y, width, height)
@@ -276,6 +276,16 @@ def resetGrid(currConfig):
         for j in range(numRows):
             currConfig[i] = numRows - 1
             boardConfig[j][i] = -1
+
+
+def winnerCelebration():
+    image = pygame.image.load('icons/winner_400x300.jpg')
+
+    x = 25
+    y = endY + 80
+    DISPLAY.blit(image, (x, y))
+    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
+
 
 def main():
     global canUndo
@@ -323,6 +333,7 @@ def main():
                             d_isCheckMate = True
                             changeTurn()
                             displayStatus("WINNER")
+                            winnerCelebration()
 
         pygame.display.update()
 
