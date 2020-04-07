@@ -1,8 +1,9 @@
 import pygame
 import sys
 import numpy as np
-from pygame.locals import *
-from itertools import product 
+# from pygame.locals import *
+import pygame.locals
+from itertools import product
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -14,8 +15,10 @@ LGREY = (140, 140, 140)
 LLGREY = (153, 153, 153)
 
 bgColor = LLGREY
-displayWidth = 500;     displayHeight = 700
-startX = 50; startY = 50
+displayWidth = 500
+displayHeight = 700
+startX = 50
+startY = 50
 lineWidth = 2
 numRows = 6
 numCols = 7
@@ -38,32 +41,39 @@ endY = startY + numRows * cellHeight
 xvals = np.arange(startX,  endX + cellWidth,  cellWidth)
 yvals = np.arange(startY,  endY + cellHeight,  cellHeight)
 
-boardConfig = [ [-1]*numCols for _ in range(numRows)]
+boardConfig = [[-1]*numCols for _ in range(numRows)]
 
 diskRadius = int(cellWidth / 2) - 5
+
+
 def grid():
     # drawing vertical lines
     for xVal in xvals:
-        pygame.draw.line(DISPLAY, lineColor,  (xVal,  startY),  (xVal,  endY),  lineWidth)
-    
-    for yVal in yvals:
-    # drawing horizontal lines
-        pygame.draw.line(DISPLAY, lineColor,  (startX,  yVal),  (endX,  yVal),  lineWidth)
+        pygame.draw.line(DISPLAY, lineColor,
+                (xVal,  startY),  (xVal,  endY),  lineWidth)
 
-    pygame.display.flip()
-    
+        for yVal in yvals:
+            # drawing horizontal lines
+            pygame.draw.line(DISPLAY, lineColor,
+                (startX,  yVal),  (endX,  yVal),  lineWidth)
+
+        pygame.display.flip()
+
+
 def fillGrid():
-    pygame.draw.rect(DISPLAY, BLUE,  (startX,  startY,  cellWidth * numCols,  cellHeight * numRows),  0)
+    pygame.draw.rect(DISPLAY, BLUE,
+        (startX,  startY,  cellWidth * numCols,  cellHeight * numRows),  0)
 
 
 def rowColFromXY(pos):
     x, y = pos
     col = (x - startX) / cellWidth
-    row = (y - startY) / cellHeight 
+    row = (y - startY) / cellHeight
     return (row, col)
 
+
 def createDiskXY(x, y, radius, color):
-    pygame.draw.circle(DISPLAY, color,  (x,  y),  radius,  0) 
+    pygame.draw.circle(DISPLAY, color,  (x,  y),  radius,  0)
 
 
 def centerFromRC(row, col):
@@ -71,9 +81,11 @@ def centerFromRC(row, col):
     y = int((yvals[row] + yvals[row + 1]) / 2) + 1
     return (x, y)
 
+
 def createDisk(row,  col,  color):
     x, y = centerFromRC(row, col)
     createDiskXY(x, y, diskRadius, color)
+
 
 def changeTurn():
     global playerID
@@ -82,23 +94,24 @@ def changeTurn():
     else:
         playerID = 0
 
+
 def checkValidity(row,  col):
-    # print(str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ") 
-    if (row >= 0 and row < numRows) and (col >= 0 and col < numCols): 
+    # print(str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ")
+    if (row >= 0 and row < numRows) and (col >= 0 and col < numCols):
         return True
     return False
+
 
 def isCheckMate():
     def markDots(row, col, ri, ci):
         for i in range(4):
-            x, y = centerFromRC(row + i*ri, col + i*ci)        
+            x, y = centerFromRC(row + i*ri, col + i*ci)
             createDiskXY(x, y, 5, BLACK)
 
-
     def markLine(row, col, ri, ci):
-        x, y = centerFromRC(row, col)        
-        x2, y2 = centerFromRC(row + 3*ri, col + 3*ci)        
-        pygame.draw.line(DISPLAY, BLACK, (x, y), (x2, y2), 2) 
+        x, y = centerFromRC(row, col)
+        x2, y2 = centerFromRC(row + 3*ri, col + 3*ci)
+        pygame.draw.line(DISPLAY, BLACK, (x, y), (x2, y2), 2)
 
     for row, col in product(range(numRows), range(numCols)):
         if boardConfig[row][col] == -1:
@@ -153,7 +166,7 @@ def isCheckMate():
 def updateConfig(currConfig,  row,  col):
     lastMove = (-1, -1)
 
-    if checkValidity(row,  col) is False: 
+    if checkValidity(row,  col) is False:
         return (lastMove, False)
 
     if currConfig[col] == -1:
@@ -165,7 +178,7 @@ def updateConfig(currConfig,  row,  col):
 
     boardConfig[currConfig[col]][col] = playerID
     currConfig[col] = currConfig[col] - 1
-    
+
     return (lastMove, True)
 
 
@@ -176,20 +189,20 @@ def displayStatus(text):
     height = 40
 
     statusFont = pygame.font.Font('fonts/FreeSansBold.ttf', 24)
-    text = statusFont.render(text, True, BLACK, GREEN) 
+    text = statusFont.render(text, True, BLACK, GREEN)
 
-    textRect = text.get_rect()  
+    textRect = text.get_rect()
     textRect.x = x + 10
     textRect.y = y + 10
-   
+
     # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
     pygame.draw.rect(DISPLAY, bgColor, (x, y, width, height), 0)
     pygame.display.update()
-    DISPLAY.blit(text, textRect) 
-    
+    DISPLAY.blit(text, textRect)
+
     diskX = x + width - 30 - diskRadius
     diskY = textRect.centery
-    createDiskXY(diskX, diskY, diskRadius, diskColor[playerID]) 
+    createDiskXY(diskX, diskY, diskRadius, diskColor[playerID])
 
 
 def undoButtonPos():
@@ -223,10 +236,10 @@ def isUndoPressed(pos):
 def takeUndoAction(currConfig, lastMove):
     global canUndo
     if canUndo is False:
-        return 
+        return
 
     row, col = lastMove
-    if checkValidity(row,  col) is False: 
+    if checkValidity(row,  col) is False:
         return (lastMove, False)
 
     canUndo = False
@@ -295,11 +308,11 @@ def showColSelected(row, col):
     width = endX - startX + 40
     height = 30
     pygame.draw.rect(DISPLAY, bgColor, (x, y, width, height), 0)
-    
+
     if checkValidity(row, col) is False:
         return
-    
-    cx, cy = centerFromRC(row, col) 
+
+    cx, cy = centerFromRC(row, col)
     pygame.draw.polygon(DISPLAY, diskColor[playerID], ((cx - 10, y + 10), (cx + 10, y + 10), (cx, y + 25)))
 
 def winnerCelebration():
@@ -313,7 +326,7 @@ def winnerCelebration():
 
 def main():
     global canUndo
-    
+
     currConfig = [numRows - 1]*numCols
 
     resetGrid(currConfig)
@@ -327,7 +340,7 @@ def main():
             # print("hovered: row {}, col{}".format(row, col))
             showColSelected(row, col)
         for event in pygame.event.get():
-            if event.type==QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
