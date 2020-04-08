@@ -50,19 +50,20 @@ def grid():
     # drawing vertical lines
     for xVal in xvals:
         pygame.draw.line(DISPLAY, lineColor,
-                (xVal,  startY),  (xVal,  endY),  lineWidth)
+                         (xVal,  startY),  (xVal,  endY),  lineWidth)
 
         for yVal in yvals:
             # drawing horizontal lines
             pygame.draw.line(DISPLAY, lineColor,
-                (startX,  yVal),  (endX,  yVal),  lineWidth)
+                             (startX,  yVal),  (endX,  yVal),  lineWidth)
 
         pygame.display.flip()
 
 
 def fillGrid():
     pygame.draw.rect(DISPLAY, BLUE,
-        (startX,  startY,  cellWidth * numCols,  cellHeight * numRows),  0)
+                     (startX,  startY,
+                      cellWidth * numCols,  cellHeight * numRows),  0)
 
 
 def rowColFromXY(pos):
@@ -96,7 +97,8 @@ def changeTurn():
 
 
 def checkValidity(row,  col):
-    # print(str(row) + " " + str(numRows) + " " + str(col) + " " + str(numCols) + " ")
+    # print(str(row) + " " + str(numRows) + " " +
+    # str(col) + " " + str(numCols) + " ")
     if (row >= 0 and row < numRows) and (col >= 0 and col < numCols):
         return True
     return False
@@ -219,13 +221,16 @@ def dispUndoButton():
     DISPLAY.blit(undoImg2, (x, y))
     # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
 
+
 def restrictUndoImg():
     pygame.draw.rect(DISPLAY, RED, undoButtonPos(), 2)
     # dispUndoButton()
 
+
 def admitUndoImg():
     pygame.draw.rect(DISPLAY, bgColor, undoButtonPos(), 2)
     # dispUndoButton()
+
 
 def isUndoPressed(pos):
     undoRec = pygame.Rect(undoButtonPos())
@@ -274,6 +279,7 @@ def isResetPressed(pos):
     if resetRec.collidepoint(pos):
         return True
 
+
 def resetGrid(currConfig):
     global boardConfig
     global playerID
@@ -313,7 +319,9 @@ def showColSelected(row, col):
         return
 
     cx, cy = centerFromRC(row, col)
-    pygame.draw.polygon(DISPLAY, diskColor[playerID], ((cx - 10, y + 10), (cx + 10, y + 10), (cx, y + 25)))
+    pygame.draw.polygon(DISPLAY, diskColor[playerID],
+                        ((cx - 10, y + 10), (cx + 10, y + 10), (cx, y + 25)))
+
 
 def winnerCelebration():
     image = pygame.image.load('icons/winner_400x300.jpg')
@@ -361,7 +369,8 @@ def main():
 
                     rowNum, colNum = rowColFromXY(event.pos)
 
-                    lastMove, success = updateConfig(currConfig,  rowNum,  colNum)
+                    lastMove, success = updateConfig(currConfig,
+                                                     rowNum,  colNum)
                     if success:
                         changeTurn()
                         displayStatus("PLAYER")
