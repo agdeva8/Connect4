@@ -5,130 +5,132 @@ import numpy as np
 import pygame.locals
 from itertools import product
 
+# we will be using d insted of d
+
 
 class Game:
-    def __init__(self, numRows=6, numCols=7):
-        self.____numRows = numRows
-        self.__numCols = numCols
+    def __init__(d, numRows=6, numCols=7):
+        d.__numRows = numRows
+        d.__numCols = numCols
 
-        self.__WHITE = (255, 255, 255)
-        self.__BLACK = (0, 0, 0)
-        self.__RED = (255, 0, 0)
-        self.__GREEN = (0, 255, 0)
-        self.__BLUE = (0, 0, 255)
-        self.__YELLOW = (255,  255,  0)
-        self.__LGREY = (140, 140, 140)
-        self.__LLGREY = (153, 153, 153)
+        d.__WHITE = (255, 255, 255)
+        d.__BLACK = (0, 0, 0)
+        d.__RED = (255, 0, 0)
+        d.__GREEN = (0, 255, 0)
+        d.__BLUE = (0, 0, 255)
+        d.__YELLOW = (255,  255,  0)
+        d.__LGREY = (140, 140, 140)
+        d.__LLGREY = (153, 153, 153)
 
-        self.__bgColor = self.__LLGREY
-        self.__displayWidth = 500
-        self.__displayHeight = 700
-        self.__startX = 50
-        self.__startY = 50
-        self.__lineWidth = 2
-        self.__numRows = 6
-        self.__numCols = 7
-        self.__lineColor = self.__BLUE
-        self.__cellWidth = 50
-        self.__cellHeight = 50
-        self.__diskColor = [self.__YELLOW,  self.__RED]
+        d.__bgColor = d.__LLGREY
+        d.__displayWidth = 500
+        d.__displayHeight = 700
+        d.__startX = 50
+        d.__startY = 50
+        d.__lineWidth = 2
+        d.__numRows = 6
+        d.__numCols = 7
+        d.__lineColor = d.__BLUE
+        d.__cellWidth = 50
+        d.__cellHeight = 50
+        d.__diskColor = [d.__YELLOW,  d.__RED]
 
-        self.__canUndo = True
-        self.__playerID = 0
+        d.__canUndo = True
+        d.__playerID = 0
 
         pygame.init()
-        self.__display = pygame.display.set_mode((
-            self.__displayWidth, self.__displayHeight))
+        d.__display = pygame.display.set_mode((
+            d.__displayWidth, d.__displayHeight))
 
-        self.__font = pygame.font.Font('fonts/FreeSansBold.ttf', 32)
+        d.__font = pygame.font.Font('fonts/FreeSansBold.ttf', 32)
 
-        self.__endX = self.__startX + self.__numCols * self.__cellWidth
-        self.__endY = self.__startY + self.__numRows * self.__cellHeight
+        d.__endX = d.__startX + d.__numCols * d.__cellWidth
+        d.__endY = d.__startY + d.__numRows * d.__cellHeight
 
-        self.__xvals = np.arange(self.__startX,
-                               self.__endX + self.__cellWidth,  self.__cellWidth)
-        self.__yvals = np.arange(self.__startY,
-                               self.__endY + self.__cellHeight,  self.__cellHeight)
+        d.__xvals = np.arange(d.__startX,
+                               d.__endX + d.__cellWidth,  d.__cellWidth)
+        d.__yvals = np.arange(d.__startY,
+                               d.__endY + d.__cellHeight,  d.__cellHeight)
 
-        self.__boardConfig = [[-1]*self.__numCols for _ in range(self.__numRows)]
+        d.__boardConfig = [[-1]*d.__numCols for _ in range(d.__numRows)]
 
-        self.__diskRadius = int(self.__cellWidth / 2) - 5
+        d.__diskRadius = int(d.__cellWidth / 2) - 5
 
-    def __grid(self):
-        # drawing vertical self.__lines
-        for xVal in self.__xvals:
-            pygame.draw.line(self.__display, self.__lineColor,
-                             (xVal,  self.__startY),
-                             (xVal,  self.__endY),  self.__lineWidth)
+    def __grid(d):
+        # drawing vertical d.__lines
+        for xVal in d.__xvals:
+            pygame.draw.line(d.__display, d.__lineColor,
+                             (xVal,  d.__startY),
+                             (xVal,  d.__endY),  d.__lineWidth)
 
-            for yVal in self.__yvals:
-                # drawing horizontal self.__lines
-                pygame.draw.line(self.__display, self.__lineColor,
-                                 (self.__startX,  yVal),
-                                 (self.__endX,  yVal),  self.__lineWidth)
+            for yVal in d.__yvals:
+                # drawing horizontal d.__lines
+                pygame.draw.line(d.__display, d.__lineColor,
+                                 (d.__startX,  yVal),
+                                 (d.__endX,  yVal),  d.__lineWidth)
 
             pygame.display.flip()
 
-    def __fillgrid(self):
-        pygame.draw.rect(self.__display, self.__BLUE,
-                         (self.__startX,  self.__startY,
-                          self.__cellWidth * self.__numCols,
-                          self.__cellHeight * self.__numRows),  0)
+    def __fillgrid(d):
+        pygame.draw.rect(d.__display, d.__BLUE,
+                         (d.__startX,  d.__startY,
+                          d.__cellWidth * d.__numCols,
+                          d.__cellHeight * d.__numRows),  0)
 
-    def __rowColFromXY(self, pos):
+    def __rowColFromXY(d, pos):
         x, y = pos
-        col = (x - self.__startX) / self.__cellWidth
-        row = (y - self.__startY) / self.__cellHeight
+        col = (x - d.__startX) / d.__cellWidth
+        row = (y - d.__startY) / d.__cellHeight
         return (row, col)
 
-    def __creatediskXY(self, x, y, radius, color):
-        pygame.draw.circle(self.__display, color,  (x,  y),  radius,  0)
+    def __creatediskXY(d, x, y, radius, color):
+        pygame.draw.circle(d.__display, color,  (x,  y),  radius,  0)
 
-    def __centerFromRC(self, row, col):
-        x = int((self.__xvals[col] + self.__xvals[col + 1]) / 2) + 1
-        y = int((self.__yvals[row] + self.__yvals[row + 1]) / 2) + 1
+    def __centerFromRC(d, row, col):
+        x = int((d.__xvals[col] + d.__xvals[col + 1]) / 2) + 1
+        y = int((d.__yvals[row] + d.__yvals[row + 1]) / 2) + 1
         return (x, y)
 
-    def __createdisk(self, row,  col,  color):
-        x, y = self.__centerFromRC(row, col)
-        self.__creatediskXY(x, y, self.__diskRadius, color)
+    def __createdisk(d, row,  col,  color):
+        x, y = d.__centerFromRC(row, col)
+        d.__creatediskXY(x, y, d.__diskRadius, color)
 
-    def __changeTurn(self):
-        if self.__playerID == 0:
-            self.__playerID = 1
+    def __changeTurn(d):
+        if d.__playerID == 0:
+            d.__playerID = 1
         else:
-            self.__playerID = 0
+            d.__playerID = 0
 
-    def __checkValidity(self, row,  col):
-        # print(str(row) + " " + str(self.__numRows) + " " +
-        # str(col) + " " + str(self.__numCols) + " ")
-        if (row >= 0 and row < self.__numRows) \
-                and (col >= 0 and col < self.__numCols):
+    def __checkValidity(d, row,  col):
+        # print(str(row) + " " + str(d.__numRows) + " " +
+        # str(col) + " " + str(d.__numCols) + " ")
+        if (row >= 0 and row < d.__numRows) \
+                and (col >= 0 and col < d.__numCols):
             return True
         return False
 
-    def __isCheckMate(self):
+    def __isCheckMate(d):
         def markDots(row, col, ri, ci):
             for i in range(4):
-                x, y = self.__centerFromRC(row + i*ri, col + i*ci)
-                self.__creatediskXY(x, y, 5, self.__BLACK)
+                x, y = d.__centerFromRC(row + i*ri, col + i*ci)
+                d.__creatediskXY(x, y, 5, d.__BLACK)
 
         def markline(row, col, ri, ci):
-            x, y = self.__centerFromRC(row, col)
-            x2, y2 = self.__centerFromRC(row + 3*ri, col + 3*ci)
-            pygame.draw.line(self.__display, self.__BLACK,
+            x, y = d.__centerFromRC(row, col)
+            x2, y2 = d.__centerFromRC(row + 3*ri, col + 3*ci)
+            pygame.draw.line(d.__display, d.__BLACK,
                              (x, y), (x2, y2), 2)
 
-        for row, col in product(range(self.__numRows), range(self.__numCols)):
-            if self.__boardConfig[row][col] == -1:
+        for row, col in product(range(d.__numRows), range(d.__numCols)):
+            if d.__boardConfig[row][col] == -1:
                 continue
 
             # for horizontal
             count = 0
             for i in range(4):
-                if self.__checkValidity(row + i, col):
-                    if self.__boardConfig[row][col] == \
-                            self.__boardConfig[row + i][col]:
+                if d.__checkValidity(row + i, col):
+                    if d.__boardConfig[row][col] == \
+                            d.__boardConfig[row + i][col]:
                         count = count + 1
             if count == 4:
                 markDots(row, col, 1, 0)
@@ -138,9 +140,9 @@ class Game:
             # for vertical
             count = 0
             for i in range(4):
-                if self.__checkValidity(row, col + i):
-                    if self.__boardConfig[row][col] == \
-                            self.__boardConfig[row][col + i]:
+                if d.__checkValidity(row, col + i):
+                    if d.__boardConfig[row][col] == \
+                            d.__boardConfig[row][col + i]:
                         count = count + 1
             if count == 4:
                 markDots(row, col, 0, 1)
@@ -150,9 +152,9 @@ class Game:
             # for reverse diagonal
             count = 0
             for i in range(4):
-                if self.__checkValidity(row + i, col + i):
-                    if self.__boardConfig[row][col] == \
-                            self.__boardConfig[row + i][col + i]:
+                if d.__checkValidity(row + i, col + i):
+                    if d.__boardConfig[row][col] == \
+                            d.__boardConfig[row + i][col + i]:
                         count = count + 1
             if count == 4:
                 markDots(row, col, 1, 1)
@@ -162,9 +164,9 @@ class Game:
             # for diagonal
             count = 0
             for i in range(4):
-                if self.__checkValidity(row + i, col - i):
-                    if self.__boardConfig[row][col] == \
-                            self.__boardConfig[row + i][col - i]:
+                if d.__checkValidity(row + i, col - i):
+                    if d.__boardConfig[row][col] == \
+                            d.__boardConfig[row + i][col - i]:
                         count = count + 1
             if count == 4:
                 markDots(row, col, 1, -1)
@@ -172,10 +174,10 @@ class Game:
                 return True
         return False
 
-    def __updateConfig(self, currConfig,  row,  col):
+    def __updateConfig(d, currConfig,  row,  col):
         lastMove = (-1, -1)
 
-        if self.__checkValidity(row,  col) is False:
+        if d.__checkValidity(row,  col) is False:
             return (lastMove, False)
 
         if currConfig[col] == -1:
@@ -183,160 +185,160 @@ class Game:
 
         lastMove = (currConfig[col], col)
 
-        self.__createdisk(lastMove[0], lastMove[1],
-                        self.__diskColor[self.__playerID])
+        d.__createdisk(lastMove[0], lastMove[1],
+                        d.__diskColor[d.__playerID])
 
-        self.__boardConfig[currConfig[col]][col] = self.__playerID
+        d.__boardConfig[currConfig[col]][col] = d.__playerID
         currConfig[col] = currConfig[col] - 1
 
         return (lastMove, True)
 
-    def __displayStatus(self, text):
+    def __displayStatus(d, text):
         x = 260
-        y = self.__endY + 30
+        y = d.__endY + 30
         width = 200
         height = 40
 
         statusFont = pygame.font.Font('fonts/FreeSansBold.ttf', 24)
-        text = statusFont.render(text, True, self.__BLACK, self.__GREEN)
+        text = statusFont.render(text, True, d.__BLACK, d.__GREEN)
 
         textRect = text.get_rect()
         textRect.x = x + 10
         textRect.y = y + 10
 
-        # pygame.draw.rect(self.__display, self.__BLACK, (x, y, width, height), 2)
-        pygame.draw.rect(self.__display, self.__bgColor, (x, y, width, height), 0)
+        # pygame.draw.rect(d.__display, d.__BLACK, (x, y, width, height), 2)
+        pygame.draw.rect(d.__display, d.__bgColor, (x, y, width, height), 0)
         pygame.display.update()
-        self.__display.blit(text, textRect)
+        d.__display.blit(text, textRect)
 
-        self.__diskX = x + width - 30 - self.__diskRadius
-        self.__diskY = textRect.centery
-        self.__creatediskXY(self.__diskX, self.__diskY,
-                          self.__diskRadius, self.__diskColor[self.__playerID])
+        d.__diskX = x + width - 30 - d.__diskRadius
+        d.__diskY = textRect.centery
+        d.__creatediskXY(d.__diskX, d.__diskY,
+                          d.__diskRadius, d.__diskColor[d.__playerID])
 
-    def __undoButtonPos(self):
+    def __undoButtonPos(d):
         x = 110
-        y = self.__endY + 30
+        y = d.__endY + 30
         width = 48
         height = 48
         return (x, y, width, height)
 
-    def __dispUndoButton(self):
+    def __dispUndoButton(d):
         undoImg2 = pygame.image.load('icons/undo_48x48.jpg')
-        x, y, width, height = self.__undoButtonPos()
-        self.__display.blit(undoImg2, (x, y))
-        # pygame.draw..rect(self.__display, self.__BLACK, (x, y, width, height), 2)
+        x, y, width, height = d.__undoButtonPos()
+        d.__display.blit(undoImg2, (x, y))
+        # pygame.draw..rect(d.__display, d.__BLACK, (x, y, width, height), 2)
 
-    def __restrictUndoImg(self):
-        pygame.draw.rect(self.__display, self.__RED, self.__undoButtonPos(), 2)
-        # self.__dispUndoButton()
+    def __restrictUndoImg(d):
+        pygame.draw.rect(d.__display, d.__RED, d.__undoButtonPos(), 2)
+        # d.__dispUndoButton()
 
-    def __admitUndoImg(self):
-        pygame.draw.rect(self.__display, self.__bgColor, self.__undoButtonPos(), 2)
-        # self.__dispUndoButton()
+    def __admitUndoImg(d):
+        pygame.draw.rect(d.__display, d.__bgColor, d.__undoButtonPos(), 2)
+        # d.__dispUndoButton()
 
-    def __isUndoPressed(self, pos):
-        undoRec = pygame.Rect(self.__undoButtonPos())
+    def __isUndoPressed(d, pos):
+        undoRec = pygame.Rect(d.__undoButtonPos())
         if undoRec.collidepoint(pos):
             return True
 
-    def __takeUndoAction(self, currConfig, lastMove):
-        if self.__canUndo is False:
+    def __takeUndoAction(d, currConfig, lastMove):
+        if d.__canUndo is False:
             return
 
         row, col = lastMove
-        if self.__checkValidity(row,  col) is False:
+        if d.__checkValidity(row,  col) is False:
             return (lastMove, False)
 
-        self.__canUndo = False
-        self.__restrictUndoImg()
+        d.__canUndo = False
+        d.__restrictUndoImg()
 
-        self.__createdisk(row, col, self.__bgColor)
+        d.__createdisk(row, col, d.__bgColor)
 
-        self.__boardConfig[row][col] = -1
+        d.__boardConfig[row][col] = -1
         currConfig[col] = currConfig[col] + 1
 
-        self.__self.__changeTurn()
-        self.__displayStatus("self.__player")
+        d.__changeTurn()
+        d.__displayStatus("PLAYER")
 
-    def __resetButtonPos(self):
+    def __resetButtonPos(d):
         x = 50
-        y = self.__endY + 30
+        y = d.__endY + 30
         width = 48
         height = 48
         return (x, y, width, height)
 
-    def __dispResetButton(self):
+    def __dispResetButton(d):
         resetImg = pygame.image.load('icons/reset_48x48.jpg')
-        x, y, width, height = self.__resetButtonPos()
-        self.__display.blit(resetImg, (x, y))
-        # pygame.draw..rect(self.__display, self.__BLACK, (x, y, width, height), 2)
+        x, y, width, height = d.__resetButtonPos()
+        d.__display.blit(resetImg, (x, y))
+        # pygame.draw..rect(d.__display, d.__BLACK, (x, y, width, height), 2)
 
-    def __isResetPressed(self, pos):
-        resetRec = pygame.Rect(self.__resetButtonPos())
+    def __isResetPressed(d, pos):
+        resetRec = pygame.Rect(d.__resetButtonPos())
         if resetRec.collidepoint(pos):
             return True
 
-    def __resetgrid(self, currConfig):
-        self.__playerID = 0
+    def __resetgrid(d, currConfig):
+        d.__playerID = 0
 
-        self.__display.fill(self.__bgColor)
+        d.__display.fill(d.__bgColor)
 
-        # building self.__grid
-        self.__grid()
-        self.__fillgrid()
+        # building d.__grid
+        d.__grid()
+        d.__fillgrid()
 
-        self.__displayStatus("self.__player")
-        self.__dispUndoButton()
-        self.__dispResetButton()
+        d.__displayStatus("PLAYER")
+        d.__dispUndoButton()
+        d.__dispResetButton()
 
         # empty coins
-        for row in range(0,  self.__numRows):
-            for col in range(0,  self.__numCols):
-                self.__createdisk(row,  col, self.__bgColor)
+        for row in range(0,  d.__numRows):
+            for col in range(0,  d.__numCols):
+                d.__createdisk(row,  col, d.__bgColor)
 
         # clear board and curr config
-        for i in range(self.__numCols):
-            for j in range(self.__numRows):
-                currConfig[i] = self.__numRows - 1
-                self.__boardConfig[j][i] = -1
+        for i in range(d.__numCols):
+            for j in range(d.__numRows):
+                currConfig[i] = d.__numRows - 1
+                d.__boardConfig[j][i] = -1
 
-    def __showColSelected(self, row, col):
+    def __showColSelected(d, row, col):
         x = 30
-        y = self.__startY - 40
-        width = self.__endX - self.__startX + 40
+        y = d.__startY - 40
+        width = d.__endX - d.__startX + 40
         height = 30
-        pygame.draw.rect(self.__display, self.__bgColor, (x, y, width, height), 0)
+        pygame.draw.rect(d.__display, d.__bgColor, (x, y, width, height), 0)
 
-        if self.__checkValidity(row, col) is False:
+        if d.__checkValidity(row, col) is False:
             return
 
-        cx, cy = self.__centerFromRC(row, col)
-        pygame.draw.polygon(self.__display, self.__diskColor[self.__playerID],
+        cx, cy = d.__centerFromRC(row, col)
+        pygame.draw.polygon(d.__display, d.__diskColor[d.__playerID],
                             ((cx - 10, y + 10),
                             (cx + 10, y + 10), (cx, y + 25)))
 
-    def __winnerCelebration(self):
+    def __winnerCelebration(d):
         image = pygame.image.load('icons/winner_400x300.jpg')
 
         x = 25
-        y = self.__endY + 80
-        self.__display.blit(image, (x, y))
-        # pygame.draw.rect(self.__display, self.__BLACK, (x, y, width, height), 2)
+        y = d.__endY + 80
+        d.__display.blit(image, (x, y))
+        # pygame.draw.rect(d.__display, d.__BLACK, (x, y, width, height), 2)
 
-    def main(self):
-        currConfig = [self.__numRows - 1]*self.__numCols
+    def main(d):
+        currConfig = [d.__numRows - 1]*d.__numCols
 
-        self.__resetgrid(currConfig)
+        d.__resetgrid(currConfig)
         # main loop to capture events
         d_isCheckMate = False
 
         lastMove = (-1, -1)
         while True:
-            row, col = self.__rowColFromXY(pygame.mouse.get_pos())
-            if (self.__checkValidity(row, col)):
+            row, col = d.__rowColFromXY(pygame.mouse.get_pos())
+            if (d.__checkValidity(row, col)):
                 # print("hovered: row {}, col{}".format(row, col))
-                self.__showColSelected(row, col)
+                d.__showColSelected(row, col)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -344,8 +346,8 @@ class Game:
 
                 if event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
-                        if (self.__isResetPressed(event.pos)):
-                            self.__resetgrid(currConfig)
+                        if (d.__isResetPressed(event.pos)):
+                            d.__resetgrid(currConfig)
                             d_isCheckMate = False
                             lastMove = (-1, -1)
                             continue
@@ -353,25 +355,25 @@ class Game:
                         if d_isCheckMate:
                             continue
 
-                        if (self.__isUndoPressed(event.pos)):
-                            self.__takeUndoAction(currConfig, lastMove)
+                        if (d.__isUndoPressed(event.pos)):
+                            d.__takeUndoAction(currConfig, lastMove)
                             continue
 
-                        rownum, colnum = self.__rowColFromXY(event.pos)
+                        rownum, colnum = d.__rowColFromXY(event.pos)
 
-                        lastMove, success = self.__updateConfig(currConfig,
+                        lastMove, success = d.__updateConfig(currConfig,
                                                               rownum,  colnum)
                         if success:
-                            self.__changeTurn()
-                            self.__displayStatus("self.__player")
-                            self.__canUndo = True
-                            self.__admitUndoImg()
+                            d.__changeTurn()
+                            d.__displayStatus("PLAYER")
+                            d.__canUndo = True
+                            d.__admitUndoImg()
 
-                            if self.__isCheckMate():
+                            if d.__isCheckMate():
                                 d_isCheckMate = True
-                                self.__changeTurn()
-                                self.__displayStatus("WINNER")
-                                self.__winnerCelebration()
+                                d.__changeTurn()
+                                d.__displayStatus("WINNER")
+                                d.__winnerCelebration()
 
             pygame.display.update()
 
