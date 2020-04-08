@@ -5,385 +5,376 @@ import numpy as np
 import pygame.locals
 from itertools import product
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-YELLOW = (255,  255,  0)
-LGREY = (140, 140, 140)
-LLGREY = (153, 153, 153)
 
-bgColor = LLGREY
-displayWidth = 500
-displayHeight = 700
-startX = 50
-startY = 50
-lineWidth = 2
-numRows = 6
-numCols = 7
-lineColor = BLUE
-cellWidth = 50
-cellHeight = 50
-diskColor = [YELLOW,  RED]
+class Game:
+    def __init__(self, numRows=6, numCols=7):
+        self.numRows = numRows
+        self.numCols = numCols
 
-canUndo = True
-playerID = 0
+        self.WHITE = (255, 255, 255)
+        self.BLACK = (0, 0, 0)
+        self.RED = (255, 0, 0)
+        self.GREEN = (0, 255, 0)
+        self.BLUE = (0, 0, 255)
+        self.YELLOW = (255,  255,  0)
+        self.LGREY = (140, 140, 140)
+        self.LLGREY = (153, 153, 153)
 
-pygame.init()
-DISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
+        self.bgColor = self.LLGREY
+        self.displayWidth = 500
+        self.displayHeight = 700
+        self.startX = 50
+        self.startY = 50
+        self.lineWidth = 2
+        self.numRows = 6
+        self.numCols = 7
+        self.lineColor = self.BLUE
+        self.cellWidth = 50
+        self.cellHeight = 50
+        self.diskColor = [self.YELLOW,  self.RED]
 
-font = pygame.font.Font('fonts/FreeSansBold.ttf', 32)
+        self.canUndo = True
+        self.playerID = 0
 
-endX = startX + numCols * cellWidth
-endY = startY + numRows * cellHeight
+        pygame.init()
+        self.display = pygame.display.set_mode((
+            self.displayWidth, self.displayHeight))
 
-xvals = np.arange(startX,  endX + cellWidth,  cellWidth)
-yvals = np.arange(startY,  endY + cellHeight,  cellHeight)
+        self.font = pygame.font.Font('fonts/FreeSansBold.ttf', 32)
 
-boardConfig = [[-1]*numCols for _ in range(numRows)]
+        self.endX = self.startX + self.numCols * self.cellWidth
+        self.endY = self.startY + self.numRows * self.cellHeight
 
-diskRadius = int(cellWidth / 2) - 5
+        self.xvals = np.arange(self.startX,
+                               self.endX + self.cellWidth,  self.cellWidth)
+        self.yvals = np.arange(self.startY,
+                               self.endY + self.cellHeight,  self.cellHeight)
 
+        self.boardConfig = [[-1]*self.numCols for _ in range(self.numRows)]
 
-def grid():
-    # drawing vertical lines
-    for xVal in xvals:
-        pygame.draw.line(DISPLAY, lineColor,
-                         (xVal,  startY),  (xVal,  endY),  lineWidth)
+        self.diskRadius = int(self.cellWidth / 2) - 5
 
-        for yVal in yvals:
-            # drawing horizontal lines
-            pygame.draw.line(DISPLAY, lineColor,
-                             (startX,  yVal),  (endX,  yVal),  lineWidth)
+    def grid(self):
+        # drawing vertical self.lines
+        for xVal in self.xvals:
+            pygame.draw.line(self.display, self.lineColor,
+                             (xVal,  self.startY),
+                             (xVal,  self.endY),  self.lineWidth)
 
-        pygame.display.flip()
+            for yVal in self.yvals:
+                # drawing horizontal self.lines
+                pygame.draw.line(self.display, self.lineColor,
+                                 (self.startX,  yVal),
+                                 (self.endX,  yVal),  self.lineWidth)
 
+            pygame.display.flip()
 
-def fillGrid():
-    pygame.draw.rect(DISPLAY, BLUE,
-                     (startX,  startY,
-                      cellWidth * numCols,  cellHeight * numRows),  0)
+    def fillgrid(self):
+        pygame.draw.rect(self.display, self.BLUE,
+                         (self.startX,  self.startY,
+                          self.cellWidth * self.numCols,
+                          self.cellHeight * self.numRows),  0)
 
+    def rowColFromXY(self, pos):
+        x, y = pos
+        col = (x - self.startX) / self.cellWidth
+        row = (y - self.startY) / self.cellHeight
+        return (row, col)
 
-def rowColFromXY(pos):
-    x, y = pos
-    col = (x - startX) / cellWidth
-    row = (y - startY) / cellHeight
-    return (row, col)
+    def creatediskXY(self, x, y, radius, color):
+        pygame.draw.circle(self.display, color,  (x,  y),  radius,  0)
 
+    def centerFromRC(self, row, col):
+        x = int((self.xvals[col] + self.xvals[col + 1]) / 2) + 1
+        y = int((self.yvals[row] + self.yvals[row + 1]) / 2) + 1
+        return (x, y)
 
-def createDiskXY(x, y, radius, color):
-    pygame.draw.circle(DISPLAY, color,  (x,  y),  radius,  0)
+    def createdisk(self, row,  col,  color):
+        x, y = self.centerFromRC(row, col)
+        self.creatediskXY(x, y, self.diskRadius, color)
 
+    def changeTurn(self):
+        if self.playerID == 0:
+            self.playerID = 1
+        else:
+            self.playerID = 0
 
-def centerFromRC(row, col):
-    x = int((xvals[col] + xvals[col + 1]) / 2) + 1
-    y = int((yvals[row] + yvals[row + 1]) / 2) + 1
-    return (x, y)
-
-
-def createDisk(row,  col,  color):
-    x, y = centerFromRC(row, col)
-    createDiskXY(x, y, diskRadius, color)
-
-
-def changeTurn():
-    global playerID
-    if playerID == 0:
-        playerID = 1
-    else:
-        playerID = 0
-
-
-def checkValidity(row,  col):
-    # print(str(row) + " " + str(numRows) + " " +
-    # str(col) + " " + str(numCols) + " ")
-    if (row >= 0 and row < numRows) and (col >= 0 and col < numCols):
-        return True
-    return False
-
-
-def isCheckMate():
-    def markDots(row, col, ri, ci):
-        for i in range(4):
-            x, y = centerFromRC(row + i*ri, col + i*ci)
-            createDiskXY(x, y, 5, BLACK)
-
-    def markLine(row, col, ri, ci):
-        x, y = centerFromRC(row, col)
-        x2, y2 = centerFromRC(row + 3*ri, col + 3*ci)
-        pygame.draw.line(DISPLAY, BLACK, (x, y), (x2, y2), 2)
-
-    for row, col in product(range(numRows), range(numCols)):
-        if boardConfig[row][col] == -1:
-            continue
-
-        # for horizontal
-        count = 0
-        for i in range(4):
-            if checkValidity(row + i, col):
-                if boardConfig[row][col] == boardConfig[row + i][col]:
-                    count = count + 1
-        if count == 4:
-            markDots(row, col, 1, 0)
-            markLine(row, col, 1, 0)
+    def checkValidity(self, row,  col):
+        # print(str(row) + " " + str(self.numRows) + " " +
+        # str(col) + " " + str(self.numCols) + " ")
+        if (row >= 0 and row < self.numRows) \
+                and (col >= 0 and col < self.numCols):
             return True
-
-        # for vertical
-        count = 0
-        for i in range(4):
-            if checkValidity(row, col + i):
-                if boardConfig[row][col] == boardConfig[row][col + i]:
-                    count = count + 1
-        if count == 4:
-            markDots(row, col, 0, 1)
-            markLine(row, col, 0, 1)
-            return True
-
-        # for reverse diagonal
-        count = 0
-        for i in range(4):
-            if checkValidity(row + i, col + i):
-                if boardConfig[row][col] == boardConfig[row + i][col + i]:
-                    count = count + 1
-        if count == 4:
-            markDots(row, col, 1, 1)
-            markLine(row, col, 1, 1)
-            return True
-
-        # for diagonal
-        count = 0
-        for i in range(4):
-            if checkValidity(row + i, col - i):
-                if boardConfig[row][col] == boardConfig[row + i][col - i]:
-                    count = count + 1
-        if count == 4:
-            markDots(row, col, 1, -1)
-            markLine(row, col, 1, -1)
-            return True
-    return False
-
-
-def updateConfig(currConfig,  row,  col):
-    lastMove = (-1, -1)
-
-    if checkValidity(row,  col) is False:
-        return (lastMove, False)
-
-    if currConfig[col] == -1:
-        return (lastMove, False)
-
-    lastMove = (currConfig[col], col)
-
-    createDisk(lastMove[0], lastMove[1],  diskColor[playerID])
-
-    boardConfig[currConfig[col]][col] = playerID
-    currConfig[col] = currConfig[col] - 1
-
-    return (lastMove, True)
-
-
-def displayStatus(text):
-    x = 260
-    y = endY + 30
-    width = 200
-    height = 40
-
-    statusFont = pygame.font.Font('fonts/FreeSansBold.ttf', 24)
-    text = statusFont.render(text, True, BLACK, GREEN)
-
-    textRect = text.get_rect()
-    textRect.x = x + 10
-    textRect.y = y + 10
-
-    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
-    pygame.draw.rect(DISPLAY, bgColor, (x, y, width, height), 0)
-    pygame.display.update()
-    DISPLAY.blit(text, textRect)
-
-    diskX = x + width - 30 - diskRadius
-    diskY = textRect.centery
-    createDiskXY(diskX, diskY, diskRadius, diskColor[playerID])
-
-
-def undoButtonPos():
-    x = 110
-    y = endY + 30
-    width = 48
-    height = 48
-    return (x, y, width, height)
-
-
-def dispUndoButton():
-    undoImg2 = pygame.image.load('icons/undo_48x48.jpg')
-    x, y, width, height = undoButtonPos()
-    DISPLAY.blit(undoImg2, (x, y))
-    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
-
-
-def restrictUndoImg():
-    pygame.draw.rect(DISPLAY, RED, undoButtonPos(), 2)
-    # dispUndoButton()
-
-
-def admitUndoImg():
-    pygame.draw.rect(DISPLAY, bgColor, undoButtonPos(), 2)
-    # dispUndoButton()
-
-
-def isUndoPressed(pos):
-    undoRec = pygame.Rect(undoButtonPos())
-    if undoRec.collidepoint(pos):
-        return True
-
-
-def takeUndoAction(currConfig, lastMove):
-    global canUndo
-    if canUndo is False:
-        return
-
-    row, col = lastMove
-    if checkValidity(row,  col) is False:
-        return (lastMove, False)
-
-    canUndo = False
-    restrictUndoImg()
-
-    createDisk(row, col, bgColor)
-
-    boardConfig[row][col] = -1
-    currConfig[col] = currConfig[col] + 1
-
-    changeTurn()
-    displayStatus("PLAYER")
-
-
-def resetButtonPos():
-    x = 50
-    y = endY + 30
-    width = 48
-    height = 48
-    return (x, y, width, height)
-
-
-def dispResetButton():
-    resetImg = pygame.image.load('icons/reset_48x48.jpg')
-    x, y, width, height = resetButtonPos()
-    DISPLAY.blit(resetImg, (x, y))
-    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
-
-
-def isResetPressed(pos):
-    resetRec = pygame.Rect(resetButtonPos())
-    if resetRec.collidepoint(pos):
-        return True
-
-
-def resetGrid(currConfig):
-    global boardConfig
-    global playerID
-
-    playerID = 0
-
-    DISPLAY.fill(bgColor)
-
-    # building grid
-    grid()
-    fillGrid()
-
-    displayStatus("PLAYER")
-    dispUndoButton()
-    dispResetButton()
-
-    # empty coins
-    for row in range(0,  numRows):
-        for col in range(0,  numCols):
-            createDisk(row,  col, bgColor)
-
-    # clear board and curr config
-    for i in range(numCols):
-        for j in range(numRows):
-            currConfig[i] = numRows - 1
-            boardConfig[j][i] = -1
-
-
-def showColSelected(row, col):
-    x = 30
-    y = startY - 40
-    width = endX - startX + 40
-    height = 30
-    pygame.draw.rect(DISPLAY, bgColor, (x, y, width, height), 0)
-
-    if checkValidity(row, col) is False:
-        return
-
-    cx, cy = centerFromRC(row, col)
-    pygame.draw.polygon(DISPLAY, diskColor[playerID],
-                        ((cx - 10, y + 10), (cx + 10, y + 10), (cx, y + 25)))
-
-
-def winnerCelebration():
-    image = pygame.image.load('icons/winner_400x300.jpg')
-
-    x = 25
-    y = endY + 80
-    DISPLAY.blit(image, (x, y))
-    # pygame.draw.rect(DISPLAY, BLACK, (x, y, width, height), 2)
-
-
-def main():
-    global canUndo
-
-    currConfig = [numRows - 1]*numCols
-
-    resetGrid(currConfig)
-    # main loop to capture events
-    d_isCheckMate = False
-
-    lastMove = (-1, -1)
-    while True:
-        row, col = rowColFromXY(pygame.mouse.get_pos())
-        if (checkValidity(row, col)):
-            # print("hovered: row {}, col{}".format(row, col))
-            showColSelected(row, col)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    if (isResetPressed(event.pos)):
-                        resetGrid(currConfig)
-                        d_isCheckMate = False
-                        lastMove = (-1, -1)
-                        continue
-
-                    if d_isCheckMate:
-                        continue
-
-                    if (isUndoPressed(event.pos)):
-                        takeUndoAction(currConfig, lastMove)
-                        continue
-
-                    rowNum, colNum = rowColFromXY(event.pos)
-
-                    lastMove, success = updateConfig(currConfig,
-                                                     rowNum,  colNum)
-                    if success:
-                        changeTurn()
-                        displayStatus("PLAYER")
-                        canUndo = True
-                        admitUndoImg()
-
-                        if isCheckMate():
-                            d_isCheckMate = True
-                            changeTurn()
-                            displayStatus("WINNER")
-                            winnerCelebration()
-
+        return False
+
+    def isCheckMate(self):
+        def markDots(row, col, ri, ci):
+            for i in range(4):
+                x, y = self.centerFromRC(row + i*ri, col + i*ci)
+                self.creatediskXY(x, y, 5, self.BLACK)
+
+        def markline(row, col, ri, ci):
+            x, y = self.centerFromRC(row, col)
+            x2, y2 = self.centerFromRC(row + 3*ri, col + 3*ci)
+            pygame.draw.line(self.display, self.BLACK,
+                             (x, y), (x2, y2), 2)
+
+        for row, col in product(range(self.numRows), range(self.numCols)):
+            if self.boardConfig[row][col] == -1:
+                continue
+
+            # for horizontal
+            count = 0
+            for i in range(4):
+                if self.checkValidity(row + i, col):
+                    if self.boardConfig[row][col] == \
+                            self.boardConfig[row + i][col]:
+                        count = count + 1
+            if count == 4:
+                markDots(row, col, 1, 0)
+                markline(row, col, 1, 0)
+                return True
+
+            # for vertical
+            count = 0
+            for i in range(4):
+                if self.checkValidity(row, col + i):
+                    if self.boardConfig[row][col] == \
+                            self.boardConfig[row][col + i]:
+                        count = count + 1
+            if count == 4:
+                markDots(row, col, 0, 1)
+                markline(row, col, 0, 1)
+                return True
+
+            # for reverse diagonal
+            count = 0
+            for i in range(4):
+                if self.checkValidity(row + i, col + i):
+                    if self.boardConfig[row][col] == \
+                            self.boardConfig[row + i][col + i]:
+                        count = count + 1
+            if count == 4:
+                markDots(row, col, 1, 1)
+                markline(row, col, 1, 1)
+                return True
+
+            # for diagonal
+            count = 0
+            for i in range(4):
+                if self.checkValidity(row + i, col - i):
+                    if self.boardConfig[row][col] == \
+                            self.boardConfig[row + i][col - i]:
+                        count = count + 1
+            if count == 4:
+                markDots(row, col, 1, -1)
+                markline(row, col, 1, -1)
+                return True
+        return False
+
+    def updateConfig(self, currConfig,  row,  col):
+        lastMove = (-1, -1)
+
+        if self.checkValidity(row,  col) is False:
+            return (lastMove, False)
+
+        if currConfig[col] == -1:
+            return (lastMove, False)
+
+        lastMove = (currConfig[col], col)
+
+        self.createdisk(lastMove[0], lastMove[1],
+                        self.diskColor[self.playerID])
+
+        self.boardConfig[currConfig[col]][col] = self.playerID
+        currConfig[col] = currConfig[col] - 1
+
+        return (lastMove, True)
+
+    def displayStatus(self, text):
+        x = 260
+        y = self.endY + 30
+        width = 200
+        height = 40
+
+        statusFont = pygame.font.Font('fonts/FreeSansBold.ttf', 24)
+        text = statusFont.render(text, True, self.BLACK, self.GREEN)
+
+        textRect = text.get_rect()
+        textRect.x = x + 10
+        textRect.y = y + 10
+
+        # pygame.draw.rect(self.display, self.BLACK, (x, y, width, height), 2)
+        pygame.draw.rect(self.display, self.bgColor, (x, y, width, height), 0)
         pygame.display.update()
+        self.display.blit(text, textRect)
+
+        self.diskX = x + width - 30 - self.diskRadius
+        self.diskY = textRect.centery
+        self.creatediskXY(self.diskX, self.diskY,
+                          self.diskRadius, self.diskColor[self.playerID])
+
+    def undoButtonPos(self):
+        x = 110
+        y = self.endY + 30
+        width = 48
+        height = 48
+        return (x, y, width, height)
+
+    def dispUndoButton(self):
+        undoImg2 = pygame.image.load('icons/undo_48x48.jpg')
+        x, y, width, height = self.undoButtonPos()
+        self.display.blit(undoImg2, (x, y))
+        # pygame.draw..rect(self.display, self.BLACK, (x, y, width, height), 2)
+
+    def restrictUndoImg(self):
+        pygame.draw.rect(self.display, self.RED, self.undoButtonPos(), 2)
+        # self.dispUndoButton()
+
+    def admitUndoImg(self):
+        pygame.draw.rect(self.display, self.bgColor, self.undoButtonPos(), 2)
+        # self.dispUndoButton()
+
+    def isUndoPressed(self, pos):
+        undoRec = pygame.Rect(self.undoButtonPos())
+        if undoRec.collidepoint(pos):
+            return True
+
+    def takeUndoAction(self, currConfig, lastMove):
+        if self.canUndo is False:
+            return
+
+        row, col = lastMove
+        if self.checkValidity(row,  col) is False:
+            return (lastMove, False)
+
+        self.canUndo = False
+        self.restrictUndoImg()
+
+        self.createdisk(row, col, self.bgColor)
+
+        self.boardConfig[row][col] = -1
+        currConfig[col] = currConfig[col] + 1
+
+        self.self.changeTurn()
+        self.displayStatus("self.player")
+
+    def resetButtonPos(self):
+        x = 50
+        y = self.endY + 30
+        width = 48
+        height = 48
+        return (x, y, width, height)
+
+    def dispResetButton(self):
+        resetImg = pygame.image.load('icons/reset_48x48.jpg')
+        x, y, width, height = self.resetButtonPos()
+        self.display.blit(resetImg, (x, y))
+        # pygame.draw..rect(self.display, self.BLACK, (x, y, width, height), 2)
+
+    def isResetPressed(self, pos):
+        resetRec = pygame.Rect(self.resetButtonPos())
+        if resetRec.collidepoint(pos):
+            return True
+
+    def resetgrid(self, currConfig):
+        self.playerID = 0
+
+        self.display.fill(self.bgColor)
+
+        # building self.grid
+        self.grid()
+        self.fillgrid()
+
+        self.displayStatus("self.player")
+        self.dispUndoButton()
+        self.dispResetButton()
+
+        # empty coins
+        for row in range(0,  self.numRows):
+            for col in range(0,  self.numCols):
+                self.createdisk(row,  col, self.bgColor)
+
+        # clear board and curr config
+        for i in range(self.numCols):
+            for j in range(self.numRows):
+                currConfig[i] = self.numRows - 1
+                self.boardConfig[j][i] = -1
+
+    def showColSelected(self, row, col):
+        x = 30
+        y = self.startY - 40
+        width = self.endX - self.startX + 40
+        height = 30
+        pygame.draw.rect(self.display, self.bgColor, (x, y, width, height), 0)
+
+        if self.checkValidity(row, col) is False:
+            return
+
+        cx, cy = self.centerFromRC(row, col)
+        pygame.draw.polygon(self.display, self.diskColor[self.playerID],
+                            ((cx - 10, y + 10),
+                            (cx + 10, y + 10), (cx, y + 25)))
+
+    def winnerCelebration(self):
+        image = pygame.image.load('icons/winner_400x300.jpg')
+
+        x = 25
+        y = self.endY + 80
+        self.display.blit(image, (x, y))
+        # pygame.draw.rect(self.display, self.BLACK, (x, y, width, height), 2)
+
+    def main(self):
+        currConfig = [self.numRows - 1]*self.numCols
+
+        self.resetgrid(currConfig)
+        # main loop to capture events
+        d_isCheckMate = False
+
+        lastMove = (-1, -1)
+        while True:
+            row, col = self.rowColFromXY(pygame.mouse.get_pos())
+            if (self.checkValidity(row, col)):
+                # print("hovered: row {}, col{}".format(row, col))
+                self.showColSelected(row, col)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        if (self.isResetPressed(event.pos)):
+                            self.resetgrid(currConfig)
+                            d_isCheckMate = False
+                            lastMove = (-1, -1)
+                            continue
+
+                        if d_isCheckMate:
+                            continue
+
+                        if (self.isUndoPressed(event.pos)):
+                            self.takeUndoAction(currConfig, lastMove)
+                            continue
+
+                        rownum, colnum = self.rowColFromXY(event.pos)
+
+                        lastMove, success = self.updateConfig(currConfig,
+                                                              rownum,  colnum)
+                        if success:
+                            self.changeTurn()
+                            self.displayStatus("self.player")
+                            self.canUndo = True
+                            self.admitUndoImg()
+
+                            if self.isCheckMate():
+                                d_isCheckMate = True
+                                self.changeTurn()
+                                self.displayStatus("WINNER")
+                                self.winnerCelebration()
+
+            pygame.display.update()
 
 
-main()
+myGame = Game()
+myGame.main()
