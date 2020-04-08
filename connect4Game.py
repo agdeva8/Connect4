@@ -33,10 +33,14 @@ class Game:
         d.__lineColor = d.__BLUE
         d.__cellWidth = 50
         d.__cellHeight = 50
-        d.__diskColor = [d.__YELLOW,  d.__RED]
+        # d.__diskColor = [d.__YELLOW,  d.__RED]
+        d.__diskColor = {
+            +1: d.__YELLOW,
+            -1: d.__RED,
+        }
 
         d.__canUndo = True
-        d.__playerID = 0
+        d.__playerID = 1
 
         pygame.init()
         d.__display = pygame.display.set_mode((
@@ -48,20 +52,19 @@ class Game:
         d.__endY = d.__startY + d.__numRows * d.__cellHeight
 
         d.__xvals = np.arange(d.__startX,
-                               d.__endX + d.__cellWidth,  d.__cellWidth)
+                d.__endX + d.__cellWidth,  d.__cellWidth)
         d.__yvals = np.arange(d.__startY,
-                               d.__endY + d.__cellHeight,  d.__cellHeight)
+                d.__endY + d.__cellHeight,  d.__cellHeight)
 
-        d.__boardConfig = [[-1]*d.__numCols for _ in range(d.__numRows)]
-
+        d.__boardConfig = np.zeros((d.__numRows, d.__numCols))
         d.__diskRadius = int(d.__cellWidth / 2) - 5
 
     def __grid(d):
         # drawing vertical d.__lines
         for xVal in d.__xvals:
             pygame.draw.line(d.__display, d.__lineColor,
-                             (xVal,  d.__startY),
-                             (xVal,  d.__endY),  d.__lineWidth)
+                    (xVal,  d.__startY),
+                    (xVal,  d.__endY),  d.__lineWidth)
 
             for yVal in d.__yvals:
                 # drawing horizontal d.__lines
@@ -69,13 +72,13 @@ class Game:
                                  (d.__startX,  yVal),
                                  (d.__endX,  yVal),  d.__lineWidth)
 
-            pygame.display.flip()
+                pygame.display.flip()
 
     def __fillgrid(d):
         pygame.draw.rect(d.__display, d.__BLUE,
-                         (d.__startX,  d.__startY,
-                          d.__cellWidth * d.__numCols,
-                          d.__cellHeight * d.__numRows),  0)
+                (d.__startX,  d.__startY,
+                    d.__cellWidth * d.__numCols,
+                    d.__cellHeight * d.__numRows),  0)
 
     def __rowColFromXY(d, pos):
         x, y = pos
@@ -96,20 +99,35 @@ class Game:
         d.__creatediskXY(x, y, d.__diskRadius, color)
 
     def __changeTurn(d):
-        if d.__playerID == 0:
-            d.__playerID = 1
-        else:
-            d.__playerID = 0
+        d.__playerID = d.__playerID * -1
+        # if d.__playerID == 0:
+        #     d.__playerID = 1
+        # else:
+        #     d.__playerID = 0
 
     def __checkValidity(d, row,  col):
         # print(str(row) + " " + str(d.__numRows) + " " +
         # str(col) + " " + str(d.__numCols) + " ")
         if (row >= 0 and row < d.__numRows) \
                 and (col >= 0 and col < d.__numCols):
-            return True
+                    return True
         return False
 
-    def __isCheckMate(d):
+    def __decodeS(d, s):
+        if s is None:
+            return d.__boardConfig
+        return s
+
+    def __isBoardFull(d, s=None):
+        s = d.__decodeS(s)
+
+        if 0 in s:
+            return False
+        return True
+
+    def __isCheckMate(d, s=None):
+        s = d.__decodeS(s)
+
         def markDots(row, col, ri, ci):
             for i in range(4):
                 x, y = d.__centerFromRC(row + i*ri, col + i*ci)
@@ -119,19 +137,20 @@ class Game:
             x, y = d.__centerFromRC(row, col)
             x2, y2 = d.__centerFromRC(row + 3*ri, col + 3*ci)
             pygame.draw.line(d.__display, d.__BLACK,
-                             (x, y), (x2, y2), 2)
+                    (x, y), (x2, y2), 2)
 
         for row, col in product(range(d.__numRows), range(d.__numCols)):
-            if d.__boardConfig[row][col] == -1:
+            if s[row][col] == 0:
                 continue
 
             # for horizontal
             count = 0
             for i in range(4):
                 if d.__checkValidity(row + i, col):
-                    if d.__boardConfig[row][col] == \
-                            d.__boardConfig[row + i][col]:
+                    # print("valid for {} and {}".format(row + i, col))
+                    if s[row][col] == s[row + i][col]:
                         count = count + 1
+
             if count == 4:
                 markDots(row, col, 1, 0)
                 markline(row, col, 1, 0)
@@ -141,9 +160,9 @@ class Game:
             count = 0
             for i in range(4):
                 if d.__checkValidity(row, col + i):
-                    if d.__boardConfig[row][col] == \
-                            d.__boardConfig[row][col + i]:
-                        count = count + 1
+                    if s[row][col] == \
+                            s[row][col + i]:
+                                count = count + 1
             if count == 4:
                 markDots(row, col, 0, 1)
                 markline(row, col, 0, 1)
@@ -153,9 +172,9 @@ class Game:
             count = 0
             for i in range(4):
                 if d.__checkValidity(row + i, col + i):
-                    if d.__boardConfig[row][col] == \
-                            d.__boardConfig[row + i][col + i]:
-                        count = count + 1
+                    if s[row][col] == \
+                            s[row + i][col + i]:
+                                count = count + 1
             if count == 4:
                 markDots(row, col, 1, 1)
                 markline(row, col, 1, 1)
@@ -165,9 +184,9 @@ class Game:
             count = 0
             for i in range(4):
                 if d.__checkValidity(row + i, col - i):
-                    if d.__boardConfig[row][col] == \
-                            d.__boardConfig[row + i][col - i]:
-                        count = count + 1
+                    if s[row][col] == \
+                            s[row + i][col - i]:
+                                count = count + 1
             if count == 4:
                 markDots(row, col, 1, -1)
                 markline(row, col, 1, -1)
@@ -186,7 +205,7 @@ class Game:
         lastMove = (currConfig[col], col)
 
         d.__createdisk(lastMove[0], lastMove[1],
-                        d.__diskColor[d.__playerID])
+                d.__diskColor[d.__playerID])
 
         d.__boardConfig[currConfig[col]][col] = d.__playerID
         currConfig[col] = currConfig[col] - 1
@@ -214,7 +233,7 @@ class Game:
         d.__diskX = x + width - 30 - d.__diskRadius
         d.__diskY = textRect.centery
         d.__creatediskXY(d.__diskX, d.__diskY,
-                          d.__diskRadius, d.__diskColor[d.__playerID])
+                            d.__diskRadius, d.__diskColor[d.__playerID])
 
     def __undoButtonPos(d):
         x = 110
@@ -279,8 +298,31 @@ class Game:
         if resetRec.collidepoint(pos):
             return True
 
+    def __showColSelected(d, row, col):
+        x = 30
+        y = d.__startY - 40
+        width = d.__endX - d.__startX + 40
+        height = 30
+        pygame.draw.rect(d.__display, d.__bgColor, (x, y, width, height), 0)
+
+        if d.__checkValidity(row, col) is False:
+            return
+
+        cx, cy = d.__centerFromRC(row, col)
+        pygame.draw.polygon(d.__display, d.__diskColor[d.__playerID],
+                ((cx - 10, y + 10),
+                    (cx + 10, y + 10), (cx, y + 25)))
+
+    def __winnerCelebration(d):
+        image = pygame.image.load('icons/winner_400x300.jpg')
+
+        x = 25
+        y = d.__endY + 80
+        d.__display.blit(image, (x, y))
+        # pygame.draw.rect(d.__display, d.__BLACK, (x, y, width, height), 2)
+
     def __resetgrid(d, currConfig):
-        d.__playerID = 0
+        d.__playerID = 1
 
         d.__display.fill(d.__bgColor)
 
@@ -301,30 +343,7 @@ class Game:
         for i in range(d.__numCols):
             for j in range(d.__numRows):
                 currConfig[i] = d.__numRows - 1
-                d.__boardConfig[j][i] = -1
-
-    def __showColSelected(d, row, col):
-        x = 30
-        y = d.__startY - 40
-        width = d.__endX - d.__startX + 40
-        height = 30
-        pygame.draw.rect(d.__display, d.__bgColor, (x, y, width, height), 0)
-
-        if d.__checkValidity(row, col) is False:
-            return
-
-        cx, cy = d.__centerFromRC(row, col)
-        pygame.draw.polygon(d.__display, d.__diskColor[d.__playerID],
-                            ((cx - 10, y + 10),
-                            (cx + 10, y + 10), (cx, y + 25)))
-
-    def __winnerCelebration(d):
-        image = pygame.image.load('icons/winner_400x300.jpg')
-
-        x = 25
-        y = d.__endY + 80
-        d.__display.blit(image, (x, y))
-        # pygame.draw.rect(d.__display, d.__BLACK, (x, y, width, height), 2)
+                d.__boardConfig[j][i] = 0
 
     def main(d):
         currConfig = [d.__numRows - 1]*d.__numCols
@@ -339,6 +358,7 @@ class Game:
             if (d.__checkValidity(row, col)):
                 # print("hovered: row {}, col{}".format(row, col))
                 d.__showColSelected(row, col)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -362,20 +382,66 @@ class Game:
                         rownum, colnum = d.__rowColFromXY(event.pos)
 
                         lastMove, success = d.__updateConfig(currConfig,
-                                                              rownum,  colnum)
+                                rownum,  colnum)
                         if success:
                             d.__changeTurn()
                             d.__displayStatus("PLAYER")
                             d.__canUndo = True
                             d.__admitUndoImg()
 
-                            if d.__isCheckMate():
+                            if d.isEnd(d.state()):
                                 d_isCheckMate = True
                                 d.__changeTurn()
-                                d.__displayStatus("WINNER")
-                                d.__winnerCelebration()
+                                if (d.__isCheckMate()):
+                                    d.__displayStatus("WINNER")
+                                    d.__winnerCelebration()
+                                else:
+                                    d.__displayStatus("DRAW")
 
             pygame.display.update()
+
+# creating ENVIRONMENT for AI Agent (or u can say :-)
+# defining all public definitions for AI Agent
+# these can act as wrapper definitions to provide proper environment
+    def startState(d):
+        return np.zeros((d.__numRows, d.__numCols))
+
+    def state(d):
+        return (d.__playerID, d.__boardConfig)
+
+    def actions(d, s):
+        player, boardConfig = s
+        actionList = []
+        for col in range(d.__numCols):
+            if boardConfig[0][col] == 0:
+                actionList.append(col)
+        return actionList
+
+    def succ(d, s, a):
+        player, boardConfig = s
+        # Assuming a is valid action
+        for row in reversed(range(0, d.__numRows - 1)):
+            if boardConfig[row][a] == 0:
+                boardConfig[row][a] = player
+                break
+        return player*-1, boardConfig
+
+    def isEnd(d, s):
+        player, boardConfig = s
+        return d.__isCheckMate(boardConfig) or d.__isBoardFull(boardConfig)
+
+    def isDraw(d, s):
+        player, boardConfig = s
+        if d.__isCheckMate(boardConfig):
+            return False
+        return d.__isBoardFull(boardConfig)
+
+    def utility(d, s):
+        player, sBoardConfig = s
+        print("Player is {}".format(player))
+        if d.__isCheckMate(sBoardConfig):
+            return player * 10
+        return 0
 
 
 myGame = Game()
