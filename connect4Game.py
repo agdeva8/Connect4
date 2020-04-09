@@ -38,6 +38,8 @@ class Game:
         }
 
         d.__canUndo = True
+        d.__d_isCheckMate = False
+        d.__lastmove = [-1, -1]
         d.__playerID = 1
 
         pygame.init()
@@ -100,7 +102,7 @@ class Game:
         d.__playerID = d.__playerID * -1
 
     def __checkValidity(d, row,  col):
-        # print(str(row) + " " + str(d.__numRows) + " " +
+        # # print(str(row) + " " + str(d.__numRows) + " " +
         # str(col) + " " + str(d.__numCols) + " ")
         if (row >= 0 and row < d.__numRows) \
                 and (col >= 0 and col < d.__numCols):
@@ -141,7 +143,7 @@ class Game:
             count = 0
             for i in range(4):
                 if d.__checkValidity(row + i, col):
-                    # print("valid for {} and {}".format(row + i, col))
+                    # # print("valid for {} and {}".format(row + i, col))
                     if s[row][col] == s[row + i][col]:
                         count = count + 1
 
@@ -192,7 +194,7 @@ class Game:
         lastMove = (-1, -1)
 
         if d.isValidAction(s, action) is False:
-            return (lastMove, False)
+            return (d.__lastMove, False)
 
         for row in reversed(range(d.__numRows)):
             if boardConfig[row][action] == 0:
@@ -274,6 +276,7 @@ class Game:
 
     def __takeUndoAction(d, s, lastMove):
         player, boardConfig = s
+        # print("Take Undo: Last move is {} , {}".format(lastMove[0], lastMove[1]))
 
         if d.__canUndo is False:
             return
@@ -285,6 +288,7 @@ class Game:
         d.__canUndo = False
         d.__restrictUndoImg()
 
+        # print("creating empty disk")
         d.__createdisk(row, col, d.__bgColor)
 
         d.__boardConfig[row][col] = 0
@@ -333,7 +337,8 @@ class Game:
         d.__display.blit(image, (x, y))
         # pygame.draw.rect(d.__display, d.__BLACK, (x, y, width, height), 2)
 
-    def __resetgrid(d, currConfig):
+    def __resetGrid(d):
+        # print("reseting Grid")
         d.__playerID = 1
 
         d.__display.fill(d.__bgColor)
@@ -342,10 +347,13 @@ class Game:
         d.__grid()
         d.__fillgrid()
 
+        # # print("# printing status")
         d.__displayStatus("PLAYER")
         d.__dispUndoButton()
         d.__dispResetButton()
 
+        d.__d_isCheckMate = False
+        d.__lastMove = [-1, -1]
         # empty coins
         for row in range(0,  d.__numRows):
             for col in range(0,  d.__numCols):
@@ -354,19 +362,21 @@ class Game:
         # clear board and curr config
         for i in range(d.__numCols):
             for j in range(d.__numRows):
-                currConfig[i] = d.__numRows - 1
                 d.__boardConfig[j][i] = 0
+        pygame.display.flip()
+
+    def mapToIndex(d, i):
+        if i == -1:
+            return 1
+        return 0
 
     def gameLoop(d, playerPolicies):
         # mapping from -1, 1 to 1, 0 for indexing:
-        policy = playerPolicies[(-d.__playerID + 1) / 2]
-        currConfig = [d.__numRows - 1]*d.__numCols
+        policy = playerPolicies[d.mapToIndex(d.__playerID)]
 
-        d.__resetgrid(currConfig)
+        d.__resetGrid()
         # main loop to capture events
-        d_isCheckMate = False
 
-        lastMove = [-1, -1]
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -375,36 +385,33 @@ class Game:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
+                        # print("mouse button pressed")
                         if (d.__isResetPressed(event.pos)):
-                            d.__resetgrid(currConfig)
-                            d_isCheckMate = False
-                            lastMove = (-1, -1)
-                            continue
+                            d.__resetGrid()
 
-                        if d_isCheckMate:
-                            continue
+            # # print("checking for checkmate") 
+            if d.__d_isCheckMate:
+                continue
+            # print("Player id {} , value is {}".format(d.__playerID, d.mapToIndex(d.__playerID)))
+            # print("Policy is {}".format(policy))
+            action = policy.getAction()
+            # # print("action is {}".format(action))
+            d.__lastMove, success = d.__performAction(d.state(), action)
+            if success:
+                d.__changeTurn()
+                policy = playerPolicies[d.mapToIndex(d.__playerID)]
+                d.__displayStatus("PLAYER")
+                d.__canUndo = True
+                d.__admitUndoImg()
 
-                        if (d.__isUndoPressed(event.pos)):
-                            d.__takeUndoAction(d.state(), lastMove)
-                            continue
-
-                        action = policy.getAction()
-                        lastMove, success = d.__performAction(d.state(), action)
-                        if success:
-                            d.__changeTurn()
-                            policy = playerPolicies[(-d.__playerID + 1) / 2]
-                            d.__displayStatus("PLAYER")
-                            d.__canUndo = True
-                            d.__admitUndoImg()
-
-                            if d.isEnd(d.state()):
-                                d_isCheckMate = True
-                                d.__changeTurn()
-                                if (d.__isCheckMate()):
-                                    d.__displayStatus("WINNER")
-                                    d.__winnerCelebration()
-                                else:
-                                    d.__displayStatus("DRAW")
+                if d.isEnd(d.state()):
+                    d.__d_isCheckMate = True
+                    d.__changeTurn()
+                    if (d.__isCheckMate()):
+                        d.__displayStatus("WINNER")
+                        d.__winnerCelebration()
+                    else:
+                        d.__displayStatus("DRAW")
 
             pygame.display.update()
 
@@ -414,16 +421,37 @@ class Game:
 
     # this is for human policy
     def getAction(d):
+        # print("Getting Action from getAction")
+        # Giving special powers of QUIT, Undo and Reset to Human Player
         while True:
             row, col = d.__rowColFromXY(pygame.mouse.get_pos())
             if (d.__checkValidity(row, col)):
-                # print("hovered: row {}, col{}".format(row, col))
+                # # print("hovered: row {}, col{}".format(row, col))
                 d.__showColSelected(row, col)
 
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if d.isValidAction(d.state(), col):
-                        return col
+                # d.resetandquitroutine()
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        # print("mouse button pressed")
+                        if (d.__isResetPressed(event.pos)):
+                            d.__resetGrid()
+                            return -1
+
+                        if d.__d_isCheckMate:
+                            return -1
+
+                        if (d.__isUndoPressed(event.pos)):
+                            print("Undo pressed")
+                            d.__takeUndoAction(d.state(), d.__lastmove)
+                            return -1
+
+                        if d.isValidAction(d.state(), col):
+                            return col
 
     def startState(d):
         return np.zeros((d.__numRows, d.__numCols))
@@ -464,11 +492,7 @@ class Game:
 
     def utility(d, s):
         player, sBoardConfig = s
-        print("Player is {}".format(player))
+        # print("Player is {}".format(player))
         if d.__isCheckMate(sBoardConfig):
             return player * 10
         return 0
-
-
-myGame = Game(3, 4)
-myGame.gameLoop((myGame, myGame))
