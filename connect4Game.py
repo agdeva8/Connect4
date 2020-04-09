@@ -274,16 +274,16 @@ class Game:
         if undoRec.collidepoint(pos):
             return True
 
-    def __takeUndoAction(d, s, lastMove):
+    def __takeUndoAction(d, s):
         player, boardConfig = s
         # print("Take Undo: Last move is {} , {}".format(lastMove[0], lastMove[1]))
 
         if d.__canUndo is False:
             return
 
-        row, col = lastMove
+        row, col = d.__lastMove
         if d.__checkValidity(row,  col) is False:
-            return (lastMove, False)
+            return (d.__lastMove, False)
 
         d.__canUndo = False
         d.__restrictUndoImg()
@@ -447,7 +447,7 @@ class Game:
 
                         if (d.__isUndoPressed(event.pos)):
                             print("Undo pressed")
-                            d.__takeUndoAction(d.state(), d.__lastmove)
+                            d.__takeUndoAction(d.state())
                             return -1
 
                         if d.isValidAction(d.state(), col):
