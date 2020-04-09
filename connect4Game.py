@@ -121,17 +121,21 @@ class Game:
             return False
         return True
 
-    def __isCheckMate(d, s=None):
+    def __isCheckMate(d, s=None, d_markDots=True):
         s = d.__decodeS(s)
 
         def markDots(row, col, ri, ci):
-            for i in range(4):
+            if d_markDots is False:
+                return
+            for i in range(3):
                 x, y = d.__centerFromRC(row + i*ri, col + i*ci)
                 d.__creatediskXY(x, y, 5, d.__BLACK)
 
         def markline(row, col, ri, ci):
+            if d_markDots is False:
+                return
             x, y = d.__centerFromRC(row, col)
-            x2, y2 = d.__centerFromRC(row + 3*ri, col + 3*ci)
+            x2, y2 = d.__centerFromRC(row + 2*ri, col + 2*ci)
             pygame.draw.line(d.__display, d.__BLACK,
                     (x, y), (x2, y2), 2)
 
@@ -141,49 +145,49 @@ class Game:
 
             # for horizontal
             count = 0
-            for i in range(4):
+            for i in range(3):
                 if d.__checkValidity(row + i, col):
                     # # print("valid for {} and {}".format(row + i, col))
                     if s[row][col] == s[row + i][col]:
                         count = count + 1
 
-            if count == 4:
+            if count == 3:
                 markDots(row, col, 1, 0)
                 markline(row, col, 1, 0)
                 return True
 
             # for vertical
             count = 0
-            for i in range(4):
+            for i in range(3):
                 if d.__checkValidity(row, col + i):
                     if s[row][col] == \
                             s[row][col + i]:
                                 count = count + 1
-            if count == 4:
+            if count == 3:
                 markDots(row, col, 0, 1)
                 markline(row, col, 0, 1)
                 return True
 
             # for reverse diagonal
             count = 0
-            for i in range(4):
+            for i in range(3):
                 if d.__checkValidity(row + i, col + i):
                     if s[row][col] == \
                             s[row + i][col + i]:
                                 count = count + 1
-            if count == 4:
+            if count == 3:
                 markDots(row, col, 1, 1)
                 markline(row, col, 1, 1)
                 return True
 
             # for diagonal
             count = 0
-            for i in range(4):
+            for i in range(3):
                 if d.__checkValidity(row + i, col - i):
                     if s[row][col] == \
                             s[row + i][col - i]:
                                 count = count + 1
-            if count == 4:
+            if count == 3:
                 markDots(row, col, 1, -1)
                 markline(row, col, 1, -1)
                 return True
@@ -389,12 +393,12 @@ class Game:
                         if (d.__isResetPressed(event.pos)):
                             d.__resetGrid()
 
-            # # print("checking for checkmate") 
+            # # print("checking for checkmate")
             if d.__d_isCheckMate:
                 continue
             # print("Player id {} , value is {}".format(d.__playerID, d.mapToIndex(d.__playerID)))
             # print("Policy is {}".format(policy))
-            action = policy.getAction()
+            action = policy.getAction(d.state())
             # # print("action is {}".format(action))
             d.__lastMove, success = d.__performAction(d.state(), action)
             if success:
@@ -420,7 +424,7 @@ class Game:
 # these can act as wrapper definitions to provide proper environment
 
     # this is for human policy
-    def getAction(d):
+    def getAction(d, s=None):
         # print("Getting Action from getAction")
         # Giving special powers of QUIT, Undo and Reset to Human Player
         while True:
@@ -474,25 +478,26 @@ class Game:
     def succ(d, s, a):
         player, boardConfig = s
         # Assuming a is valid action
-        for row in reversed(range(0, d.__numRows - 1)):
+        for row in reversed(range(d.__numRows)):
             if boardConfig[row][a] == 0:
                 boardConfig[row][a] = player
                 break
-        return player*-1, boardConfig
+        return -player, boardConfig
 
     def isEnd(d, s):
         player, boardConfig = s
-        return d.__isCheckMate(boardConfig) or d.__isBoardFull(boardConfig)
+        return d.__isCheckMate(boardConfig, False) or d.__isBoardFull(boardConfig)
 
     def isDraw(d, s):
         player, boardConfig = s
-        if d.__isCheckMate(boardConfig):
+        if d.__isCheckMate(boardConfig, False):
             return False
         return d.__isBoardFull(boardConfig)
 
     def utility(d, s):
         player, sBoardConfig = s
         # print("Player is {}".format(player))
-        if d.__isCheckMate(sBoardConfig):
-            return player * 10
+
+        if d.__isCheckMate(sBoardConfig, False):
+            return -player * float('inf')
         return 0
