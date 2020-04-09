@@ -28,8 +28,6 @@ class Game:
         d.__startX = 50
         d.__startY = 50
         d.__lineWidth = 2
-        d.__numRows = 6
-        d.__numCols = 7
         d.__lineColor = d.__BLUE
         d.__cellWidth = 50
         d.__cellHeight = 50
@@ -100,17 +98,13 @@ class Game:
 
     def __changeTurn(d):
         d.__playerID = d.__playerID * -1
-        # if d.__playerID == 0:
-        #     d.__playerID = 1
-        # else:
-        #     d.__playerID = 0
 
     def __checkValidity(d, row,  col):
         # print(str(row) + " " + str(d.__numRows) + " " +
         # str(col) + " " + str(d.__numCols) + " ")
         if (row >= 0 and row < d.__numRows) \
                 and (col >= 0 and col < d.__numCols):
-                    return True
+            return True
         return False
 
     def __decodeS(d, s):
@@ -193,6 +187,23 @@ class Game:
                 return True
         return False
 
+    def __performAction(d, s, action):
+        player, boardConfig = s
+        lastMove = (-1, -1)
+
+        if d.isValidAction(s, action) is False:
+            return (lastMove, False)
+
+        for row in reversed(range(d.__numRows)):
+            if boardConfig[row][action] == 0:
+                lastMove = (row, action)
+                break
+
+        d.__createdisk(lastMove[0], lastMove[1], d.__diskColor[d.__playerID])
+        d.__boardConfig[lastMove[0], lastMove[1]] = player
+
+        return lastMove, True
+
     def __updateConfig(d, currConfig,  row,  col):
         lastMove = (-1, -1)
 
@@ -216,7 +227,7 @@ class Game:
         x = 260
         y = d.__endY + 30
         width = 200
-        height = 40
+        height = 50
 
         statusFont = pygame.font.Font('fonts/FreeSansBold.ttf', 24)
         text = statusFont.render(text, True, d.__BLACK, d.__GREEN)
@@ -261,7 +272,9 @@ class Game:
         if undoRec.collidepoint(pos):
             return True
 
-    def __takeUndoAction(d, currConfig, lastMove):
+    def __takeUndoAction(d, s, lastMove):
+        player, boardConfig = s
+
         if d.__canUndo is False:
             return
 
@@ -274,8 +287,7 @@ class Game:
 
         d.__createdisk(row, col, d.__bgColor)
 
-        d.__boardConfig[row][col] = -1
-        currConfig[col] = currConfig[col] + 1
+        d.__boardConfig[row][col] = 0
 
         d.__changeTurn()
         d.__displayStatus("PLAYER")
@@ -345,26 +357,23 @@ class Game:
                 currConfig[i] = d.__numRows - 1
                 d.__boardConfig[j][i] = 0
 
-    def main(d):
+    def gameLoop(d, playerPolicies):
+        # mapping from -1, 1 to 1, 0 for indexing:
+        policy = playerPolicies[(-d.__playerID + 1) / 2]
         currConfig = [d.__numRows - 1]*d.__numCols
 
         d.__resetgrid(currConfig)
         # main loop to capture events
         d_isCheckMate = False
 
-        lastMove = (-1, -1)
+        lastMove = [-1, -1]
         while True:
-            row, col = d.__rowColFromXY(pygame.mouse.get_pos())
-            if (d.__checkValidity(row, col)):
-                # print("hovered: row {}, col{}".format(row, col))
-                d.__showColSelected(row, col)
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
 
-                if event.type == pygame.MOUSEBUTTONUP:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         if (d.__isResetPressed(event.pos)):
                             d.__resetgrid(currConfig)
@@ -376,15 +385,14 @@ class Game:
                             continue
 
                         if (d.__isUndoPressed(event.pos)):
-                            d.__takeUndoAction(currConfig, lastMove)
+                            d.__takeUndoAction(d.state(), lastMove)
                             continue
 
-                        rownum, colnum = d.__rowColFromXY(event.pos)
-
-                        lastMove, success = d.__updateConfig(currConfig,
-                                rownum,  colnum)
+                        action = policy.getAction()
+                        lastMove, success = d.__performAction(d.state(), action)
                         if success:
                             d.__changeTurn()
+                            policy = playerPolicies[(-d.__playerID + 1) / 2]
                             d.__displayStatus("PLAYER")
                             d.__canUndo = True
                             d.__admitUndoImg()
@@ -403,17 +411,35 @@ class Game:
 # creating ENVIRONMENT for AI Agent (or u can say :-)
 # defining all public definitions for AI Agent
 # these can act as wrapper definitions to provide proper environment
+
+    # this is for human policy
+    def getAction(d):
+        while True:
+            row, col = d.__rowColFromXY(pygame.mouse.get_pos())
+            if (d.__checkValidity(row, col)):
+                # print("hovered: row {}, col{}".format(row, col))
+                d.__showColSelected(row, col)
+
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if d.isValidAction(d.state(), col):
+                        return col
+
     def startState(d):
         return np.zeros((d.__numRows, d.__numCols))
 
     def state(d):
         return (d.__playerID, d.__boardConfig)
 
+    def isValidAction(d, s, action):
+        player, boardConfig = s
+        return d.__checkValidity(0, action) and boardConfig[0][action] == 0
+
     def actions(d, s):
         player, boardConfig = s
         actionList = []
         for col in range(d.__numCols):
-            if boardConfig[0][col] == 0:
+            if d.isValidAction(s, col):
                 actionList.append(col)
         return actionList
 
@@ -444,5 +470,5 @@ class Game:
         return 0
 
 
-myGame = Game()
-myGame.main()
+myGame = Game(3, 4)
+myGame.gameLoop((myGame, myGame))
