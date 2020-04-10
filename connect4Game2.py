@@ -345,6 +345,8 @@ class Game:
                             # print("Undo pressed")
                             d.takeUndoAction(d.state())
                             d.displayStatus("PLAYER")
+                            pygame.display.update()
+                            # d.displayStatus("PLAYER")
                             return -1
 
                         if d.isValidAction(d.state(), col):
