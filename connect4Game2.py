@@ -178,6 +178,9 @@ class Game:
         # d.restrictUndoImg()
         # print("creating empty disk")
         d.createdisk(row, col, d.bgColor)
+        d.displayStatus("PLAYER")
+        pygame.display.update()
+
         # d.displayStatus("PLAYER")
         # pygame.display.flip()
 
@@ -211,6 +214,7 @@ class Game:
 
         cx, cy = d.centerFromRC(row, col)
         pygame.draw.polygon(d.display, d.diskColor[d.playerID[0]], ((cx - 10, y + 10), (cx + 10, y + 10), (cx, y + 25)))
+        pygame.display.update()
 
     def winnerCelebration(d):
         image = pygame.image.load('icons/winner_400x300.jpg')
@@ -301,7 +305,7 @@ class Game:
                 if d.isEnd(d.state()):
                     d.d_isCheckMate = True
                     d.changeTurn()
-                    if (d.isCheckMate(d.state())):
+                    if (d.isCheckMate(d.state(), True)):
                         d.displayStatus("WINNER")
                         d.winnerCelebration()
                     else:
@@ -321,7 +325,7 @@ class Game:
         # Giving special powers of QUIT, Undo and Reset to Human Player
         while True:
             row, col = d.rowColFromXY(pygame.mouse.get_pos())
-            if (d.checkValidity(row, col, d.state())):
+            if (d.checkValidity(row, col, state)):
                 # print("hovered: row {}, col{}".format(row, col))
                 d.showColSelected(row, col)
 
@@ -342,11 +346,7 @@ class Game:
                             return -1
 
                         if (d.isUndoPressed(event.pos)):
-                            # print("Undo pressed")
                             d.takeUndoAction(d.state())
-                            d.displayStatus("PLAYER")
-                            pygame.display.update()
-                            # d.displayStatus("PLAYER")
                             return -1
 
                         if d.isValidAction(d.state(), col):
