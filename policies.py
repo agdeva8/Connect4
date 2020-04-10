@@ -1,8 +1,6 @@
 # from connect4Game import Game
 from connect4Game2 import Game
 import random
-import copy
-import numpy as np
 
 
 class RandomPolicy:
@@ -25,8 +23,9 @@ class MiniMaxRaw:
         player, board = state
         if d.game.isEnd(state):
             utility = d.game.utility(state) - (-player) * depth
-            if depth == 0 or depth == 1 or depth == 2:
-                print("End, depth {}, utility is {}".format(depth, utility))
+            # if depth == 0 or depth == 1 or depth == 2:
+                # print("End, depth {}, utility is {}".format(depth, utility))
+
             return (utility, None)
 
         actionList = d.game.actions(state)
@@ -40,8 +39,9 @@ class MiniMaxRaw:
             candidate = (d.recursion(succState, depth + 1)[0], action)
             candidates.append(candidate)
             d.game.prec(state, action)
-            if depth == 0 or depth == 1:
-                print("player {}, depth {}, utility is {}".format(player, depth, candidate))
+            # if depth == 0 or depth == 1:
+                # print("player {}, depth {}, utility is {}".
+                      # format(player, depth, candidate))
 
         if player == 1:
             ans = max(candidates)
@@ -61,12 +61,12 @@ class MiniMaxRaw:
         # print("succ player is {}".format(succP))
 
         utility, action = d.recursion(state, 0)
-        print("utility is {}, action is {}".format(utility, action))
+        # print("utility is {}, action is {}".format(utility, action))
         return action
 
 
 def main():
-    game = Game(4, 4)
+    game = Game(3, 4)
     # AIPolicy = RandomPolicy(game)
     minMaxPolicy = MiniMaxRaw(game)
     game.gameLoop((game, minMaxPolicy))

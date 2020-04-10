@@ -242,7 +242,7 @@ class Game:
         # pygame.draw.rect(d.display, d.BLACK, (x, y, width, height), 2)
 
     def resetGrid(d):
-        # print("reseting Grid")
+        print("Reset Grid Routine Called")
         d.playerID = 1
 
         d.display.fill(d.bgColor)
@@ -292,14 +292,20 @@ class Game:
                         # print("mouse button pressed")
                         if (d.isResetPressed(event.pos)):
                             d.resetGrid()
+                            policy = playerPolicies[d.mapToIndex(d.playerID)]
                             continue
 
             # # print("checking for checkmate")
             if d.d_isCheckMate:
                 continue
+
             # print("Player id {} , value is {}".format(d.playerID, d.mapToIndex(d.playerID)))
             # print("Policy is {}".format(policy))
             action = policy.getAction(d.state())
+            if action == -1:
+                policy = playerPolicies[d.mapToIndex(d.playerID)]
+                continue
+
             # # print("action is {}".format(action))
             d.lastMove, success = d.performAction(d.state(), action)
             if success:
