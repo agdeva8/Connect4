@@ -110,6 +110,7 @@ class Game:
                 d.createdisk(lastMove[0], lastMove[1], d.diskColor[player[0]])
                 d.succ(state, action)
                 d.undoStack.append(lastMove)
+                d.admitUndoImg()
                 break
 
         return True
@@ -150,11 +151,11 @@ class Game:
         # pygame.draw..rect(d.display, d.BLACK, (x, y, width, height), 2)
 
     def restrictUndoImg(d):
-        pygame.draw.rect(d.display, d.RED, d.undoButtonPos(), 2)
+        pygame.draw.rect(d.display, d.RED, d.undoButtonPos(), 5)
         # d.dispUndoButton()
 
     def admitUndoImg(d):
-        pygame.draw.rect(d.display, d.bgColor, d.undoButtonPos(), 2)
+        pygame.draw.rect(d.display, d.bgColor, d.undoButtonPos(), 5)
         # d.dispUndoButton()
 
     def isUndoPressed(d, pos):
@@ -165,7 +166,7 @@ class Game:
     def takeUndoAction(d, state):
         player, boardConfig = state
         # print("Take Undo: Last move is {} , {}".format(lastMove[0], lastMove[1]))
-        
+
         if len(d.undoStack) == 0:
             d.restrictUndoImg()
             return
@@ -175,14 +176,9 @@ class Game:
             return
 
         d.prec(state, col)
-        # d.restrictUndoImg()
-        # print("creating empty disk")
         d.createdisk(row, col, d.bgColor)
         d.displayStatus("PLAYER")
         pygame.display.update()
-
-        # d.displayStatus("PLAYER")
-        # pygame.display.flip()
 
     def resetButtonPos(d):
         x = 50
@@ -200,6 +196,33 @@ class Game:
     def isResetPressed(d, pos):
         resetRec = pygame.Rect(d.resetButtonPos())
         if resetRec.collidepoint(pos):
+            return True
+
+    def continueButtonPos(d):
+        x, y, width, height = d.undoButtonPos()
+        y = y + height + 10
+        continueFont = pygame.font.Font('fonts/FreeSansBold.ttf', 20)
+        text = continueFont.render("CONTINUE", True, d.BLUE, d.RED)
+
+        textRect = text.get_rect()
+        textRect.x = x - 20
+        textRect.y = y
+
+        return text, textRect
+
+    def dispContinueButton(d):
+        text, textRect = d.continueButtonPos()
+        d.display.blit(text, textRect)
+        pygame.display.update()
+
+    def hideContinueButton(d):
+        text, textRect = d.continueButtonPos()
+        pygame.draw.rect(d.display, d.bgColor, textRect, 0)
+        pygame.display.update()
+
+    def isContinuePressed(d, pos):
+        text, continueRect = d.continueButtonPos()
+        if continueRect.collidepoint(pos):
             return True
 
     def showColSelected(d, row, col):
@@ -265,6 +288,7 @@ class Game:
         d.resetGrid()
         # main loop to capture events
 
+        action = 0
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -276,20 +300,24 @@ class Game:
                         # print("mouse button pressed")
                         if (d.isResetPressed(event.pos)):
                             d.resetGrid()
-                            policy = playerPolicies[d.mapToIndex(d.playerID[0])]
-                            continue
+                            action = 0
+                        elif d.isUndoPressed(event.pos):
+                            d.takeUndoAction(d.state())
+                        elif d.isContinuePressed(event.pos):
+                            d.hideContinueButton()
+                            action = 0
 
             # print("checking for checkmate")
-            if d.d_isCheckMate:
+            if d.d_isCheckMate or action == -2:
                 # print("check Mate is True")
                 continue
 
             # print("Player id {} , value is {}".format(d.playerID, d.mapToIndex(d.playerID)))
             # print("Policy is {}".format(policy))
+            policy = playerPolicies[d.mapToIndex(d.playerID[0])]
             action = policy.getAction(d.state())
             # print("Action is {}".format(action))
-            if action == -1:
-                policy = playerPolicies[d.mapToIndex(d.playerID[0])]
+            if action == -1 or action == -2:
                 continue
 
             # print("action is {}".format(action))
@@ -298,7 +326,6 @@ class Game:
                 # d.playerID, d.boardConfig = state
                 # print("player is {}", d.playerID)
                 # d.changeTurn()
-                policy = playerPolicies[d.mapToIndex(d.playerID[0])]
                 d.displayStatus("PLAYER")
                 # d.admitUndoImg()
 
@@ -347,10 +374,13 @@ class Game:
 
                         if (d.isUndoPressed(event.pos)):
                             d.takeUndoAction(d.state())
-                            return -1
+                            d.dispContinueButton()
+                            return -2
 
-                        if d.isValidAction(d.state(), col):
-                            return col
+                        row, col = d.rowColFromXY(pygame.mouse.get_pos())
+                        if (d.checkValidity(row, col, state)):
+                            if d.isValidAction(d.state(), col):
+                                return col
 
     def checkValidity(d, row,  col, state):
         player, board = state
@@ -481,7 +511,7 @@ class Game:
                 board[row][action] = 0
                 break
         player[0] = -player[0]
-    
+
     def isEnd(d, state):
         if d.isCheckMate(state, False) or d.isBoardFull(state):
             return True

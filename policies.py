@@ -4,7 +4,7 @@ import random
 
 
 class RandomPolicy:
-    def init(d, game):
+    def __init__(d, game):
         d.game = game
 
     def getAction(d, s):
@@ -22,7 +22,7 @@ class MiniMaxRaw:
     def recursion(d, state, depth):
         player, board = state
         if d.game.isEnd(state):
-            utility = d.game.utility(state) - (-player) * depth
+            utility = d.game.utility(state) - (-player[0]) * depth
             # if depth == 0 or depth == 1 or depth == 2:
                 # print("End, depth {}, utility is {}".format(depth, utility))
 
@@ -35,17 +35,21 @@ class MiniMaxRaw:
         candidates = []
         for action in actionList:
             # print(action)
-            succState = d.game.succ(state, action)
-            candidate = (d.recursion(succState, depth + 1)[0], action)
+
+            # state now becomes Successor state
+            d.game.succ(state, action)
+            candidate = (d.recursion(state, depth + 1)[0], action)
             candidates.append(candidate)
+
+            # getting back the original state
             d.game.prec(state, action)
             # if depth == 0 or depth == 1:
                 # print("player {}, depth {}, utility is {}".
                       # format(player, depth, candidate))
 
-        if player == 1:
+        if player[0] == 1:
             ans = max(candidates)
-        elif player == -1:
+        elif player[0] == -1:
             ans = min(candidates)
 
         # if depth == 0:
