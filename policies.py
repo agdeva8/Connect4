@@ -24,8 +24,10 @@ class MiniMaxRaw:
     def recursion(d, state, depth):
         player, board = state
         if d.game.isEnd(state):
-            print("utility is {}".format(d.game.utility(state) - player*depth))
-            return (d.game.utility(state) - player*depth, None)
+            utility = d.game.utility(state) - (-player) * depth
+            if depth == 0 or depth == 1 or depth == 2:
+                print("End, depth {}, utility is {}".format(depth, utility))
+            return (utility, None)
 
         actionList = d.game.actions(state)
         # print("Player is {}".format(player))
@@ -35,13 +37,21 @@ class MiniMaxRaw:
         for action in actionList:
             # print(action)
             succState = d.game.succ(state, action)
-            candidates.append((d.recursion(succState, depth + 1)[0], action))
+            candidate = (d.recursion(succState, depth + 1)[0], action)
+            candidates.append(candidate)
             d.game.prec(state, action)
+            if depth == 0 or depth == 1:
+                print("player {}, depth {}, utility is {}".format(player, depth, candidate))
 
         if player == 1:
-            return max(candidates)
+            ans = max(candidates)
         elif player == -1:
-            return min(candidates)
+            ans = min(candidates)
+
+        # if depth == 0:
+        #     print("player is {} , utility, action {}".format(player, ans))
+
+        return ans
 
     def getAction(d, state):
         player, board = state
@@ -56,11 +66,12 @@ class MiniMaxRaw:
 
 
 def main():
-    game = Game(3, 4)
+    game = Game(4, 4)
     # AIPolicy = RandomPolicy(game)
     minMaxPolicy = MiniMaxRaw(game)
-    # game.gameLoop((game, minMaxPolicy))
-    game.gameLoop((minMaxPolicy, game))
+    game.gameLoop((game, minMaxPolicy))
+    # game.gameLoop((minMaxPolicy, game))
+    # game.gameLoop((game, game))
     # game.gameLoop((game, AIPolicy))
     # game.gameLoop((AIPolicy, game))
     # game.gameLoop((AIPolicy, AIPolicy))

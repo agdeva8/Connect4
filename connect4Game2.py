@@ -501,5 +501,5 @@ class Game:
         # print("Player is {}".format(player))
 
         if d.isCheckMate(state, False):
-            return -player * 100
+            return -player * 1000
         return 0
