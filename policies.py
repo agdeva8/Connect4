@@ -1,5 +1,6 @@
 # from connect4Game import Game
 from connect4Game2 import Game
+import numpy as np
 import random
 
 
@@ -69,11 +70,38 @@ class MiniMaxRaw:
         return action
 
 
+class MiniMaxRandom:
+    def __init__(d, game):
+        d.game = game
+        d.randomPolicy = RandomPolicy(game) 
+        d.minMaxPolicy = MiniMaxRaw(game)
+
+    def findFilledDisks(d, board):
+        nRows, nCols = np.shape(board)
+        count = 0
+        for row in range(nRows):
+            for col in range(nCols):
+                if board[row][col] != 0:
+                    count = count + 1
+        return count
+
+    def getAction(d, state):
+        player, board = state
+
+        if d.findFilledDisks(board) < 3:
+            return d.randomPolicy.getAction(state)
+        return d.minMaxPolicy.getAction(state)
+
+
 def main():
-    game = Game(3, 4)
+    game = Game(4, 4)
     # AIPolicy = RandomPolicy(game)
-    minMaxPolicy = MiniMaxRaw(game)
-    game.gameLoop((game, minMaxPolicy))
+    # minMaxPolicy = MiniMaxRaw(game)
+    minMaxRandomPolicy = MiniMaxRandom(game)
+
+    game.gameLoop((game, minMaxRandomPolicy))
+    # game.gameLoop((game, minMaxPolicy))
+    # game.gameLoop((minMaxPolicy, minMaxPolicy))
     # game.gameLoop((minMaxPolicy, game))
     # game.gameLoop((game, game))
     # game.gameLoop((game, AIPolicy))
