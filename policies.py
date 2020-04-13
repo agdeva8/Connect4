@@ -1,5 +1,3 @@
-# from connect4Game import Game
-from connect4Game2 import Game
 import numpy as np
 import random
 
@@ -93,22 +91,3 @@ class MiniMaxRandom:
         if d.findFilledDisks(board) < 5:
             return d.randomPolicy.getAction(state)
         return d.minMaxPolicy.getAction(state)
-
-
-def main():
-    game = Game(4, 4)
-    # AIPolicy = RandomPolicy(game)
-    # minMaxPolicy = MiniMaxRaw(game)
-    minMaxRandomPolicy = MiniMaxRandom(game)
-
-    game.gameLoop((game, minMaxRandomPolicy))
-    # game.gameLoop((game, minMaxPolicy))
-    # game.gameLoop((minMaxPolicy, minMaxPolicy))
-    # game.gameLoop((minMaxPolicy, game))
-    # game.gameLoop((game, game))
-    # game.gameLoop((game, AIPolicy))
-    # game.gameLoop((AIPolicy, game))
-    # game.gameLoop((AIPolicy, AIPolicy))
-
-
-# main()
