@@ -8,13 +8,11 @@ var cell_width = 120;
 var cell_height = 120;
 var currMouse_x;
 var currMouse_y;
-var mouseClickOn;
 var humanPolicy;
 var aiPolicy;
 var bgColor = "grey";
 var diskRadius = cell_width / 2 - 0.15 * cell_width;
 var d_isCheckMate = false;
-var AIAction;
 var diskColor = {
     "1": "yellow",
     "-1": "red"
@@ -27,7 +25,7 @@ var State = /** @class */ (function () {
         for (var i = 0; i < this.board.length; i++) {
             this.board[i] = new Array(nCols);
         }
-        for (i = 0; i < nRows; i++) {
+        for (var i = 0; i < nRows; i++) {
             for (var j = 0; j < nCols; j++) {
                 this.board[i][j] = 0;
             }
@@ -123,7 +121,7 @@ function mouseClickHandler(e) {
     var x = e.clientX - canvas.offsetLeft;
     var y = e.clientY - canvas.offsetTop;
     if (x > 0 && x < canvas.width && y > 0 && y < canvas.height) {
-        var row, col;
+        var row = void 0, col = void 0;
         _a = RCFromXY(x, y), row = _a[0], col = _a[1];
         if (performAction(col, currState))
             humanPolicy = false;
@@ -289,7 +287,6 @@ function getAIResponse(state) {
     // data.append('board', state.board)
     // request.send(data)
 }
-mouseClickOn = false;
 humanPolicy = false;
 aiPolicy = false;
 function draw() {

@@ -1,28 +1,24 @@
-var canvas : any = document.getElementById("myCanvas");
-var ctx = canvas.getContext("2d");
+let canvas : any = document.getElementById("myCanvas");
+let ctx = canvas.getContext("2d");
 
-var nRows = 6;
-var nCols = 7;
+let nRows: number = 6;
+let nCols: number= 7;
 
-var startGrid_x = 100;
-var startGrid_y = 100;
-var cell_width = 120;
-var cell_height = 120;
+let startGrid_x: number= 100;
+let startGrid_y: number= 100;
+let cell_width: number = 120;
+let cell_height: number = 120;
 
-var currMouse_x;
-var currMouse_y;
-var mouseClickOn;
-var humanPolicy;
-var aiPolicy;
+let currMouse_x: number;
+let currMouse_y: number;
+let humanPolicy: boolean;
+let aiPolicy: boolean;
+let bgColor: string = "grey";
+let diskRadius: number = cell_width / 2 - 0.15 * cell_width;
 
-var bgColor = "grey";
-var diskRadius = cell_width / 2 - 0.15 * cell_width;
+let d_isCheckMate: boolean = false;
 
-var d_isCheckMate = false;
-
-var AIAction;
-
-var diskColor = {
+let diskColor = {
   "1": "yellow",
   "-1": "red",
 };
@@ -37,12 +33,12 @@ class State {
   constructor() {
     this.board = new Array(nRows);
 
-    for (var i = 0; i < this.board.length; i++) {
+    for (let i = 0; i < this.board.length; i++) {
       this.board[i] = new Array(nCols);
     }
 
-    for (i = 0; i < nRows; i++) {
-      for (var j = 0; j < nCols; j++) {
+    for (let i = 0; i < nRows; i++) {
+      for (let j = 0; j < nCols; j++) {
         this.board[i][j] = 0;
       }
     }
@@ -54,23 +50,23 @@ class State {
   }
 }
 
-var currState = new State();
+let currState: State = new State();
 
 function RCFromXY(x, y) {
-  var col = Math.floor((x - startGrid_x) / cell_width);
-  var row = Math.floor((y - startGrid_y) / cell_height);
+  let col: number = Math.floor((x - startGrid_x) / cell_width);
+  let row: number  = Math.floor((y - startGrid_y) / cell_height);
 
   return [row, col];
 }
 
 function XYFromRC(row, col) {
-  var x = startGrid_x + col * cell_width;
-  var y = startGrid_y + row * cell_height;
+  let x: number = startGrid_x + col * cell_width;
+  let y: number = startGrid_y + row * cell_height;
   return [x, y];
 }
 
 function centerFromRC(row, col) {
-  var x, y;
+  let x, y: number;
   [x, y] = XYFromRC(row, col);
   x += cell_width / 2;
   y += cell_height / 2;
@@ -82,7 +78,7 @@ function isValidRC(row, col) {
 }
 
 function createCell(row, col) {
-  var x, y;
+  let x, y: number;
   [x, y] = XYFromRC(row, col);
   ctx.beginPath();
   ctx.lineWidth = "2";
@@ -115,13 +111,13 @@ function emptyDisk(row, col) {
 }
 
 function fillDisk(row, col, state) {
-  var color = diskColor[state.player];
+  let color: string = diskColor[state.player];
   createDisk(row, col, color);
 }
 
 function createGrid() {
-  for (var row = 0; row < nRows; row++) {
-    for (var col = 0; col < nCols; col++) {
+  for (let row = 0; row < nRows; row++) {
+    for (let col = 0; col < nCols; col++) {
       createCell(row, col);
       emptyDisk(row, col);
     }
@@ -134,12 +130,12 @@ createGrid();
 document.addEventListener("mousemove", mouseMoveHandler, false);
 
 function mouseMoveHandler(e) {
-  var relativeX = e.clientX - canvas.offsetLeft;
+  let relativeX: number = e.clientX - canvas.offsetLeft;
   if (relativeX > 0 && relativeX < canvas.width) {
     currMouse_x = relativeX;
   }
 
-  var relativeY = e.clientY - canvas.offsetTop;
+  let relativeY: number = e.clientY - canvas.offsetTop;
   if (relativeY > 0 && relativeY < canvas.height) {
     currMouse_y = relativeY;
   }
@@ -150,10 +146,10 @@ document.addEventListener("click", mouseClickHandler, false);
 function mouseClickHandler(e) {
   if (!humanPolicy) return;
 
-  var x = e.clientX - canvas.offsetLeft;
-  var y = e.clientY - canvas.offsetTop;
+  let x: number = e.clientX - canvas.offsetLeft;
+  let y: number = e.clientY - canvas.offsetTop;
   if (x > 0 && x < canvas.width && y > 0 && y < canvas.height) {
-    var row, col;
+    let row, col: number;
     [row, col] = RCFromXY(x, y);
 
     if (performAction(col, currState)) humanPolicy = false;
@@ -161,12 +157,12 @@ function mouseClickHandler(e) {
 }
 
 function statusBarUpdate(col, state) {
-  var x, y;
+  let x, y: number;
 
   x = startGrid_x;
   y = startGrid_y - 40;
-  var width = cell_width * nCols;
-  var height = 25;
+  let width: number = cell_width * nCols;
+  let height: number = 25;
 
   ctx.clearRect(x, y, width, height);
   ctx.fillStyle = bgColor;
@@ -201,8 +197,8 @@ function statusBarUpdate(col, state) {
 }
 
 function showCheckMatePattern(r, c, i, j, nConnect) {
-  var x, y;
-  for (var itr = 0; itr < nConnect; itr++) {
+  let x, y: number;
+  for (let itr: number = 0; itr < nConnect; itr++) {
     [x, y] = centerFromRC(r + i * itr, c + j * itr);
     ctx.beginPath();
     ctx.arc(x, y, 0.1 * diskRadius, 0, Math.PI * 2);
@@ -211,7 +207,7 @@ function showCheckMatePattern(r, c, i, j, nConnect) {
     ctx.closePath();
   }
 
-  var x0, y0;
+  let x0, y0: number;
   [x0, y0] = centerFromRC(r, c);
 
   ctx.beginPath();
@@ -222,25 +218,25 @@ function showCheckMatePattern(r, c, i, j, nConnect) {
 }
 
 function isCheckMate(state) {
-  var nConnect = 4;
+  let nConnect: number = 4;
 
-  var ijPattern = [
+  let ijPattern: number[][] = [
     [1, 0],
     [0, 1],
     [1, 1],
     [1, -1],
   ];
-  var count = 0;
+  let count: number = 0;
 
-  for (var i = 0; i < 4; i++) {
-    for (var row = 0; row < state.nRows; row++) {
-      for (var col = 0; col < state.nCols; col++) {
+  for (let i = 0; i < 4; i++) {
+    for (let row = 0; row < state.nRows; row++) {
+      for (let col = 0; col < state.nCols; col++) {
         if (state.board[row][col] == 0) continue;
         count = 0;
 
-        for (var j = 0; j < nConnect; j++) {
-          var cRow = row + ijPattern[i][0] * j;
-          var cCol = col + ijPattern[i][1] * j;
+        for (let j = 0; j < nConnect; j++) {
+          let cRow = row + ijPattern[i][0] * j;
+          let cCol = col + ijPattern[i][1] * j;
           if (!isValidRC(cRow, cCol)) continue;
 
           if (state.board[row][col] == state.board[cRow][cCol]) count++;
@@ -266,7 +262,7 @@ function performAction(col, state) {
   // console.log("perform action")
   if (!isValidRC(0, col)) return false;
 
-  var row = state.nRows - 1;
+  let row:number = state.nRows - 1;
 
   while (row >= 0) {
     if (state.board[row][col] == 0) break;
@@ -288,16 +284,16 @@ function performAction(col, state) {
 }
 
 function showCurrPlayer(text, state) {
-  var x, y;
+  let x, y: number;
 
   [x, y] = centerFromRC(state.nRows - 1, state.nCols - 1);
   y += cell_height + 20;
 
-  var width = cell_width * 3;
-  var height = cell_height;
+  let width: number = cell_width * 3;
+  let height: number = cell_height;
 
-  var startX = startGrid_x + 4 * cell_width;
-  var startY = y - 55;
+  let startX: number = startGrid_x + 4 * cell_width;
+  let startY: number = y - 55;
 
   ctx.clearRect(startX, startY, width, height);
   ctx.fillStyle = "grey";
@@ -323,7 +319,7 @@ function getAIResponse(state) {
   // console.log("opened request");
   request.open("POST", "/AIResponse");
 
-    var action = -1
+    let action: number = -1
     request.onload = () => {
     // console.log("loaded AIResponse");
     const data = JSON.parse(request.responseText);
@@ -345,7 +341,7 @@ function getAIResponse(state) {
     // return action
   };
 
-    var jsonString = JSON.stringify(state)
+    let jsonString: string = JSON.stringify(state)
   request.send(jsonString);
 
     // const data = new FormData();
@@ -355,12 +351,11 @@ function getAIResponse(state) {
     // request.send(data)
 }
 
-mouseClickOn = false
 humanPolicy = false;
 aiPolicy = false;
 
 function draw() {
-  var currRow, currCol;
+  let currRow, currCol: number;
   [currRow, currCol] = RCFromXY(currMouse_x, currMouse_y);
 
   if (isValidRC(currRow, currCol)) {
