@@ -312,7 +312,7 @@ function getAIResponse(state) {
   if (!aiPolicy)
     return
 
-  console.log("getting ai response")
+  // console.log("getting ai response")
 
   const request = new XMLHttpRequest();
   // const player = state.player;
@@ -332,7 +332,7 @@ function getAIResponse(state) {
         // console.log(data.action)
         action = data.action
         // AIAction = data.action
-        console.log(action)
+        // console.log(action)
         if (performAction(action, currState))
             aiPolicy = false
     }
@@ -371,20 +371,21 @@ function draw() {
   showCurrPlayer("PLAYER", currState);
 
     if (!humanPolicy && !aiPolicy) {
-        if (currState.player == 1) {
-            console.log("p1 chance ")
+        if (currState.player == 0) {
+            // console.log("p1 chance ")
             humanPolicy = true
         }
-        else if (currState.player == -1) {
-            console.log("p2 chance")
+        else if (currState.player == -1 || currState.player == 1) {
+            // console.log("p2 chance")
             aiPolicy = true
             getAIResponse(currState)
         }
-        else 
-            console.log("There is some error in currState.player")
-
+        // else 
+            // console.log("There is some error in currState.player")
+        
+        // console.log('\n\n\n\n')
         if (isCheckMate(currState)) {
-          console.log("celebrating checkmate")
+          // console.log("celebrating checkmate")
           currState.player *= -1
           d_isCheckMate = true;
           showCurrPlayer("WINNER", currState);
@@ -393,19 +394,4 @@ function draw() {
         }
     }
 }
- 
-  // if (!mouseClickOn) {
-  //     // console.log(currState.player)
-  //     if (currState.player == 1)
-  //         mouseClickOn = true;
-  //     else if (currState.player == -1) {
-  //             const action = getAIResponse(currState)
-  //             if (AIAction != undefined) {
-  //                 console.log(AIAction)
-  //                 performAction(0, currState)
-  //                 mouseClickOn = false;
-  //             }
-  //     }
-
-// getAIResponse(currState);
 setInterval(draw, 10);

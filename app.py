@@ -20,7 +20,7 @@ def AIResponse():
 
     game = GameEnv()
     AIPolicy = RandomPolicy(game)
-    action = AIPolicy.getAction((state["board"], state["player"]))
+    action = AIPolicy.getAction((state["player"], state["board"]))
 
     # sys.stderr.write(str(action))
  

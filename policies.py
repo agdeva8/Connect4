@@ -1,17 +1,17 @@
 import numpy as np
 import random
+import sys
 
 
 class RandomPolicy:
     def __init__(d, game):
         d.game = game
 
-    def getAction(d, s):
-        # print("in policy get action of Ai")
-        while True:
-            actionList = d.game.actions(d.game.state())
-            action = random.choice(actionList)
-            return action
+    def getAction(d, state):
+        player, board = state
+        actionList = d.game.actions(state)
+        action = random.choice(actionList)
+        return action
 
 
 class MiniMaxRaw:
