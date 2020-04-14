@@ -8,7 +8,6 @@ class RandomPolicy:
         d.game = game
 
     def getAction(d, state):
-        player, board = state
         actionList = d.game.actions(state)
         action = random.choice(actionList)
         return action

@@ -3,6 +3,7 @@ import sys
 import json
 from policies import RandomPolicy
 from backendFunctions import GameEnv
+import numpy as np
 app = Flask(__name__)
 
 
@@ -20,7 +21,12 @@ def AIResponse():
 
     game = GameEnv()
     AIPolicy = RandomPolicy(game)
-    action = AIPolicy.getAction((state["player"], state["board"]))
+
+    nRows, nCols = np.shape(state["board"])
+    state["nRows"] = nRows
+    state["nCols"] = nCols
+    action = AIPolicy.getAction(state)
+    # action = AIPolicy.getAction((state["player"], state["board"]))
 
     # sys.stderr.write(str(action))
  
