@@ -18,12 +18,10 @@ class MiniMaxRaw:
         d.game = game
 
     def recursion(d, state, depth):
-        player, board = state
         if d.game.isEnd(state):
-            utility = d.game.utility(state) - (-player[0]) * depth
+            utility = d.game.utility(state) - (-state["player"]) * depth
             # if depth == 0 or depth == 1 or depth == 2:
-                # print("End, depth {}, utility is {}".format(depth, utility))
-
+            # print("End, depth {}, utility is {}".format(depth, utility))
             return (utility, None)
 
         actionList = d.game.actions(state)
@@ -33,36 +31,32 @@ class MiniMaxRaw:
         candidates = []
         for action in actionList:
             # print(action)
-
             # state now becomes Successor state
             d.game.succ(state, action)
             candidate = (d.recursion(state, depth + 1)[0], action)
             candidates.append(candidate)
-
             # getting back the original state
             d.game.prec(state, action)
             # if depth == 0 or depth == 1:
-                # print("player {}, depth {}, utility is {}".
-                      # format(player, depth, candidate))
+            # print("player {}, depth {}, utility is {}".
 
-        if player[0] == 1:
+        if state["player"] == 1:
             ans = max(candidates)
-        elif player[0] == -1:
+        elif state["player"] == -1:
             ans = min(candidates)
 
         # if depth == 0:
         #     print("player is {} , utility, action {}".format(player, ans))
-
         return ans
 
     def getAction(d, state):
-        player, board = state
-
         # print("Player is {}".format(player))
         # succP, succB = d.game.succ(s, d.game.actions(s)[0])
         # print("succ player is {}".format(succP))
 
+        sys.stderr.write("AI Processing")
         utility, action = d.recursion(state, 0)
+        sys.stderr.write("returning action {}".format(str(action)))
         # print("utility is {}, action is {}".format(utility, action))
         return action
 

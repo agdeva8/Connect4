@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import sys
 import json
 from policies import RandomPolicy
+from policies import MiniMaxRaw
 from backendFunctions import GameEnv
 import numpy as np
 app = Flask(__name__)
@@ -20,7 +21,8 @@ def AIResponse():
     state = json.loads(stateStr)
 
     game = GameEnv()
-    AIPolicy = RandomPolicy(game)
+    # AIPolicy = RandomPolicy(game)
+    AIPolicy = MiniMaxRaw(game)
 
     nRows, nCols = np.shape(state["board"])
     state["nRows"] = nRows
@@ -29,7 +31,7 @@ def AIResponse():
     # action = AIPolicy.getAction((state["player"], state["board"]))
 
     # sys.stderr.write(str(action))
- 
+
     return jsonify(
         success=True,
         action=action,

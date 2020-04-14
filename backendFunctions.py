@@ -1,8 +1,48 @@
+from itertools import product
 import numpy as np
+
 
 class GameEnv:
     def __init__(d):
+        d.nConnect = 3
         pass
+
+    def isBoardFull(d, state):
+        nRows, nCols = np.shape(state["board"])
+
+        for row in range(state["nRows"]):
+            for col in range(state["nCols"]):
+                if state["board"][row][col] == 0:
+                    return False
+        return True
+
+    def isCheckMate(d, state):
+
+        ijPattern = [
+            [1, 0],
+            [0, 1],
+            [1, 1],
+            [1, -1]
+        ]
+        for i in range(4):
+            for row, col in product(range(state["nRows"]), range(state["nCols"])):
+                if state["board"][row][col] == 0:
+                    continue
+                count = 0
+
+                for j in range(d.nConnect):
+                    cRow = row + ijPattern[i][0] * j
+                    cCol = col + ijPattern[i][1] * j
+                    if d.checkValidity(cRow, cCol, state) is False:
+                        continue
+
+                    if state["board"][row][col] == state["board"][cRow][cCol]:
+                        count = count + 1
+
+                    if count == d.nConnect:
+                        return True
+
+        return False
 
     def checkValidity(d, row,  col, state):
         if (row >= 0 and row < state["nRows"]) and (col >= 0 and col < state["nCols"]):
@@ -33,32 +73,33 @@ class GameEnv:
             if state["board"][row][action] == 0:
                 state["board"][row][action] = state["player"]
                 break
+
         state["player"] = -state["player"]
-        # print("before state[0] {}".format(state[0]))
-        # state[0] = -state[0]
-        # print("after state[0] {}".format(state[0]))
+    # print("before state[0] {}".format(state[0]))
+    # state[0] = -state[0]
+    # print("after state[0] {}".format(state[0]))
 
     def prec(d, state, action):
         # Assuming a is valid action
-        for row in range(d.numRows):
+        for row in range(state["nRows"]):
             if state["board"][row][action] != 0:
                 state["board"][row][action] = 0
                 break
+
         state["player"] = -state["player"]
 
     def isEnd(d, state):
-        if d.isCheckMate(state, False) or d.isBoardFull(state):
+        if d.isCheckMate(state) or d.isBoardFull(state):
             return True
         return False
 
     def isDraw(d, state):
-        if d.isCheckMate(state, False):
+        if d.isCheckMate(state):
             return False
         return d.isBoardFull(state)
 
     def utility(d, state):
         # print("Player is {}".format(player))
-
-        if d.isCheckMate(state, False):
+        if d.isCheckMate(state):
             return -state["player"] * 1000
         return 0

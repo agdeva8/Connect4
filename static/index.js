@@ -1,7 +1,7 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-var nRows = 6;
-var nCols = 7;
+var nRows = 2;
+var nCols = 4;
 var startGrid_x = 100;
 var startGrid_y = 100;
 var cell_width = 120;
@@ -13,6 +13,7 @@ var aiPolicy;
 var bgColor = "grey";
 var diskRadius = cell_width / 2 - 0.15 * cell_width;
 var d_isCheckMate = false;
+var nConnect = 3;
 var diskColor = {
     "1": "yellow",
     "-1": "red"
@@ -180,7 +181,6 @@ function showCheckMatePattern(r, c, i, j, nConnect) {
     ctx.stroke();
 }
 function isCheckMate(state) {
-    var nConnect = 4;
     var ijPattern = [
         [1, 0],
         [0, 1],
@@ -239,13 +239,15 @@ function showCurrPlayer(text, state) {
     var x, y;
     _a = centerFromRC(state.nRows - 1, state.nCols - 1), x = _a[0], y = _a[1];
     y += cell_height + 20;
-    var width = cell_width * 3;
+    var width = cell_width * 4;
     var height = cell_height;
-    var startX = startGrid_x + 4 * cell_width;
+    var startX = x - 3 * cell_width;
     var startY = y - 55;
+    ctx.beginPath();
     ctx.clearRect(startX, startY, width, height);
-    ctx.fillStyle = "grey";
+    ctx.fillStyle = bgColor;
     ctx.fillRect(startX, startY, width, height);
+    ctx.closePath();
     ctx.font = "50px Georgia";
     ctx.fillStyle = "green";
     ctx.textAlign = "right";
@@ -296,17 +298,15 @@ function draw() {
     if (isValidRC(currRow, currCol)) {
         statusBarUpdate(currCol, currState);
     }
-    if (d_isCheckMate) {
+    if (d_isCheckMate)
         return;
-    }
-    else
-        showCurrPlayer("PLAYER", currState);
+    showCurrPlayer("PLAYER", currState);
     if (!humanPolicy && !aiPolicy) {
-        if (currState.player == 0) {
+        if (currState.player == 1) {
             // console.log("p1 chance ")
             humanPolicy = true;
         }
-        else if (currState.player == -1 || currState.player == 1) {
+        else if (currState.player == -1) {
             // console.log("p2 chance")
             aiPolicy = true;
             getAIResponse(currState);

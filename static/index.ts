@@ -1,8 +1,8 @@
 let canvas : any = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
 
-let nRows: number = 6;
-let nCols: number= 7;
+let nRows: number = 2;
+let nCols: number= 4;
 
 let startGrid_x: number= 100;
 let startGrid_y: number= 100;
@@ -17,6 +17,7 @@ let bgColor: string = "grey";
 let diskRadius: number = cell_width / 2 - 0.15 * cell_width;
 
 let d_isCheckMate: boolean = false;
+let nConnect: number = 3;
 
 let diskColor = {
   "1": "yellow",
@@ -218,7 +219,6 @@ function showCheckMatePattern(r, c, i, j, nConnect) {
 }
 
 function isCheckMate(state) {
-  let nConnect: number = 4;
 
   let ijPattern: number[][] = [
     [1, 0],
@@ -289,15 +289,17 @@ function showCurrPlayer(text, state) {
   [x, y] = centerFromRC(state.nRows - 1, state.nCols - 1);
   y += cell_height + 20;
 
-  let width: number = cell_width * 3;
+  let width: number = cell_width * 4;
   let height: number = cell_height;
 
-  let startX: number = startGrid_x + 4 * cell_width;
+  let startX: number = x - 3 * cell_width;
   let startY: number = y - 55;
 
+  ctx.beginPath()
   ctx.clearRect(startX, startY, width, height);
-  ctx.fillStyle = "grey";
+  ctx.fillStyle = bgColor;
   ctx.fillRect(startX, startY, width, height);
+  ctx.closePath()
 
   ctx.font = "50px Georgia";
   ctx.fillStyle = "green";
@@ -362,18 +364,17 @@ function draw() {
     statusBarUpdate(currCol, currState);
   }
 
-  if (d_isCheckMate) {
+  if (d_isCheckMate)
     return;
-  }
- else
+
   showCurrPlayer("PLAYER", currState);
 
     if (!humanPolicy && !aiPolicy) {
-        if (currState.player == 0) {
+        if (currState.player == 1) {
             // console.log("p1 chance ")
             humanPolicy = true
         }
-        else if (currState.player == -1 || currState.player == 1) {
+        else if (currState.player == -1) {
             // console.log("p2 chance")
             aiPolicy = true
             getAIResponse(currState)
