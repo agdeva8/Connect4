@@ -60,13 +60,56 @@ class MiniMaxRaw:
         # print("utility is {}, action is {}".format(utility, action))
         return action
 
+
+class MiniMaxABPruning:
+    def __init__(d, game):
+        d.game = game
+
+    def recursion(d, state, depth, alpha, beta):
+        if d.game.isEnd(state):
+            utility = d.game.utility(state) - (-state["player"]) * depth
+            return (utility, None)
+
+        actionList = d.game.actions(state)
+
+        if state["player"] == 1:
+            ans = (-np.inf, None)
+            for action in actionList:
+                d.game.succ(state, action)
+                utility = (d.recursion(state, depth + 1, alpha, beta)[0])
+                if utility > ans[0]:
+                    ans = (utility, action)
+                    alpha = max(alpha, ans[0])
+                d.game.prec(state, action)
+                if (alpha >= beta):
+                    break
+        elif state["player"] == -1:
+            ans = (np.inf, None)
+            for action in actionList:
+                d.game.succ(state, action)
+                utility = (d.recursion(state, depth + 1, alpha, beta)[0])
+                if utility < ans[0]:
+                    ans = (utility, action)
+                    beta = min(ans[0], ans)
+                d.game.prec(state, action)
+                if (alpha >= beta):
+                    break
+
+        return ans
+
+    def getAction(d, state):
+        sys.stderr.write("AI Processing\n")
+        utility, action = d.recursion(state, 0, -np.inf, np.inf)
+        sys.stderr.write("returning action {} \n".format(str(action)))
+        return action
+
 # not a practical solution for big boards with nConnectivity = 4 or higher
 
 
 class MiniMaxRandom:
     def __init__(d, game):
         d.game = game
-        d.randomPolicy = RandomPolicy(game) 
+        d.randomPolicy = RandomPolicy(game)
         d.minMaxPolicy = MiniMaxRaw(game)
 
     def findFilledDisks(d, board):
