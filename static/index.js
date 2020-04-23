@@ -1,7 +1,7 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-var nRows = 2;
-var nCols = 4;
+var nRows = 6;
+var nCols = 7;
 var startGrid_x = 100;
 var startGrid_y = 100;
 var cell_width = 120;
@@ -13,7 +13,7 @@ var aiPolicy;
 var bgColor = "grey";
 var diskRadius = cell_width / 2 - 0.15 * cell_width;
 var d_isCheckMate = false;
-var nConnect = 3;
+var nConnect = 4;
 var diskColor = {
     "1": "yellow",
     "-1": "red"

@@ -1,5 +1,6 @@
 from itertools import product
 import numpy as np
+import sys
 
 
 class GameEnv:
@@ -103,3 +104,20 @@ class GameEnv:
         if d.isCheckMate(state):
             return -state["player"] * 1000
         return 0
+
+    def state2List(d, state):
+        # stateList = [state["player"]]
+        # stateList.extend(d.board2List(state["board"]))
+        stateList = d.board2List(state["board"])
+        return np.array(stateList)
+
+    def board2List(d, board):
+        board = np.array(board)
+        # sys.stderr.write('\n')
+        # sys.stderr.write(str(board))
+        # sys.stderr.write('\n')
+        boardList = board.flatten()
+        boardList2 = list(boardList == 0)*1
+        boardList2.extend(list(boardList == 1)*1)
+        boardList2.extend(list(boardList == -1)*1)
+        return boardList2
