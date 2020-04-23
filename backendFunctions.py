@@ -5,7 +5,7 @@ import sys
 
 class GameEnv:
     def __init__(d):
-        d.nConnect = 3
+        d.nConnect = 4
         pass
 
     def isBoardFull(d, state):
@@ -108,8 +108,9 @@ class GameEnv:
     def state2List(d, state):
         # stateList = [state["player"]]
         # stateList.extend(d.board2List(state["board"]))
-        stateList = d.board2List(state["board"])
-        return np.array(stateList)
+        # stateList = d.board2List(state["board"])
+        # return np.array(stateList)
+        return np.array(state["board"])
 
     def board2List(d, board):
         board = np.array(board)

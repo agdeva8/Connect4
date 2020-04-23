@@ -3,8 +3,8 @@ from gym.utils import seeding
 import numpy as np
 from backendFunctions import GameEnv
 
-nRows = 4
-nCols = 4
+nRows = 6
+nCols = 7
 
 
 class Connect4Env():
@@ -17,8 +17,8 @@ class Connect4Env():
         # They must be gym.spaces objects
         # # Example when using discrete actions:
         self.action_space = spaces.Discrete(nCols)
-        self.observation_space = spaces.Discrete(nRows * nCols * 3)
-            
+        # self.observation_space = spaces.Discrete(nRows * nCols * 3)
+
         self.gameEnv = GameEnv()
 
         self.seed()

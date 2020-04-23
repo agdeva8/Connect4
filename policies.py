@@ -22,7 +22,7 @@ class MiniMaxDQN:
         d.model = keras.models.load_model("models/curr")
 
     def get_qs(self, state):
-        return self.model.predict(np.array(state).reshape(-1, *state.shape))[0]
+        return self.model.predict(np.array(state).reshape((-1, 6, 7, 1)))[0]
 
     def getAction(d, state):
         # print("Player is {}".format(player))

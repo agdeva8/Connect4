@@ -1,8 +1,8 @@
 let canvas : any = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
 
-let nRows: number = 4;
-let nCols: number= 4;
+let nRows: number = 6;
+let nCols: number= 7;
 
 let startGrid_x: number= 100;
 let startGrid_y: number= 100;
@@ -17,7 +17,7 @@ let bgColor: string = "grey";
 let diskRadius: number = cell_width / 2 - 0.15 * cell_width;
 
 let d_isCheckMate: boolean = false;
-let nConnect: number = 3;
+let nConnect: number = 4;
 
 let diskColor = {
     "1": "yellow",

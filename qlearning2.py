@@ -34,10 +34,10 @@ from Connect4Env import Connect4Env
 # with tf.device('/cpu:0'):
 DISCOUNT = 0.8
 REPLAY_MEMORY_SIZE = 50000  # How many last steps to keep for model training
-MIN_REPLAY_MEMORY_SIZE = 1000  # Minimum number of steps in a memory to start training
-MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
+MIN_REPLAY_MEMORY_SIZE = 1000  # Minimum number of steps to start training
+MINIBATCH_SIZE = 500  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
-MODEL_NAME = '4x4'
+MODEL_NAME = '6x7'
 MEMORY_FRACTION = 0.20
 MIN_REWARD = 100
 
@@ -63,7 +63,7 @@ tf.compat.v2.random.set_seed(1)
 
 path = "models/"
 baseFileName = "Connect4"
-val = 146000
+val = 1
 extension = ".h5"
 
 # # tf.random.set_seet(1)
@@ -91,6 +91,7 @@ if not os.path.exists(EPS_PIPE_PATH):
     os.mkfifo(EPS_PIPE_PATH)
 Popen(['xterm', '-e', 'tail -f %s' % EPS_PIPE_PATH])
 
+
 # Agent class
 class DQNAgent:
     def __init__(self):
@@ -113,18 +114,24 @@ class DQNAgent:
         model = tf.keras.models.Sequential()
 
         model.add(
-            tf.keras.layers.Dense(MINIBATCH_SIZE,
-                                  input_dim=env.observation_space.n)
-        )  # OBSERVATION_SPACE_VALUES = (10, 10, 3) a 10x10 RGB image.
-        model.add(tf.keras.layers.Activation('relu'))
+            tf.keras.layers.Conv2D(64,
+                                   kernel_size=(1, 1),
+                                   strides=(1, 1),
+                                   activation='relu',
+                                   input_shape=(6, 7, 1)))
 
-        model.add(tf.keras.layers.Dense(128))
-        model.add(tf.keras.layers.Activation('relu'))
+        model.add(tf.keras.layers.Flatten())
 
         model.add(tf.keras.layers.Dense(512))
         model.add(tf.keras.layers.Activation('relu'))
 
+        model.add(tf.keras.layers.Dense(256))
+        model.add(tf.keras.layers.Activation('relu'))
+
         model.add(tf.keras.layers.Dense(128))
+        model.add(tf.keras.layers.Activation('relu'))
+
+        model.add(tf.keras.layers.Dense(64))
         model.add(tf.keras.layers.Activation('relu'))
 
         # model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
@@ -164,13 +171,15 @@ class DQNAgent:
             # Get current states from minibatch, then query NN model for Q values
             current_states = np.array(
                 [transition[0] for transition in minibatch])
-            current_qs_list = self.model.predict(current_states)
+            current_qs_list = self.model.predict(
+                current_states.reshape((-1, 6, 7, 1)))
 
             # Get future states from minibatch, then query NN model for Q values
             # When using target network, query it, otherwise main network should be queried
             new_current_states = np.array(
                 [transition[4] for transition in minibatch])
-            future_qs_list = self.target_model.predict(new_current_states)
+            future_qs_list = self.target_model.predict(
+                new_current_states.reshape((-1, 6, 7, 1)))
 
             X = []
             y = []
@@ -200,18 +209,18 @@ class DQNAgent:
                 y.append(current_qs)
 
             # Fit on all samples as one batch, log only on terminal state
-            history = self.model.fit(np.array(X),
+            history = self.model.fit(np.array(X).reshape((-1, 6, 7, 1)),
                                      np.array(y),
                                      batch_size=MINIBATCH_SIZE,
                                      verbose=2,
                                      shuffle=True)
 
             for i in range(int(abs(new_q) / 50)):
-                history = self.model.fit(np.array(X),
-                                         np.array(y),
-                                         batch_size=MINIBATCH_SIZE,
-                                         verbose=0,
-                                         shuffle=True)
+                self.model.fit(np.array(X).reshape((-1, 6, 7, 1)),
+                               np.array(y),
+                               batch_size=MINIBATCH_SIZE,
+                               verbose=0,
+                               shuffle=True)
 
             # If counter reaches set value, update target network with weights of main network
             reset = False
@@ -225,7 +234,7 @@ class DQNAgent:
 
     # Queries main network for Q values given current observation space
     def get_qs(self, state):
-        return self.model.predict(np.array(state).reshape(-1, *state.shape))[0]
+        return self.model.predict(np.array(state).reshape((-1, 6, 7, 1)))[0]
 
 
 agent = DQNAgent()
@@ -236,8 +245,8 @@ def f(episode, env):
     global epsilon
 
     if episode % 1000 == 0:
-        agent.model.save("{}{}_{}_{}{}".format(path, baseFileName, MODEL_NAME,
-                                               str(episode), extension),
+        agent.model.save(path + baseFileName + "_" + MODEL_NAME + "_" +
+                         str(episode) + extension,
                          overwrite=True)
 
     # Update tensorboard step every episode
@@ -289,7 +298,7 @@ for i in range(UPDATE_TARGET_EVERY):
 fullFileName = path + baseFileName + "_" + MODEL_NAME + "_" + str(
     val) + extension
 
-agent.model = tf.keras.models.load_model(fullFileName)
+# agent.model = tf.keras.models.load_model(fullFileName)
 
 # with open(EPS_PIPE_PATH, "w") as p:
 p = open(EPS_PIPE_PATH, 'w', 1)
@@ -309,9 +318,9 @@ for episode in range(val, EPISODES + 1, UPDATE_TARGET_EVERY):
 
     end = time.time()
     with open(EPS_PIPE_PATH, "w") as p:
-        p.write("Episode Num " + str(episode) + "| \t " +
-                str(UPDATE_TARGET_EVERY) +
-                "episodes / " + str(end - st) + "secs \n")
+        p.write("Episode Num " + str(episode) + "\t | \t " +
+                str(UPDATE_TARGET_EVERY) + "episodes / " + str(end - st) +
+                "secs \n")
 
     # print("######### Episode Num {}  / {}episode / {}secs ########## \n".
     #           format(episode, UPDATE_TARGET_EVERY, end - st))
